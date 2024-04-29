@@ -16,6 +16,10 @@ export class Star extends THREE.Mesh{
         this.texture = texture;
         this.rotation.y += 1
     };
+
+    onClick() {
+        this.texture = "public_assets/textures/sun.jpg";
+    };
 };
 
 export class Planet extends THREE.Mesh{
@@ -35,6 +39,9 @@ export class Planet extends THREE.Mesh{
         this.rotationSpeed = rotationSpeed;
         this.texture = texture;
     };
+    onClick() {
+        this.texture = "public_assets/textures/sun.jpg";
+    };
 };
 
 export class Moon extends THREE.Mesh{
@@ -53,6 +60,9 @@ export class Moon extends THREE.Mesh{
         this.orbitSpeed = orbitSpeed / 9000000;
         this.rotationSpeed = rotationSpeed;
         this.texture = texture;
+    };
+    onClick() {
+        this.texture = "public_assets/textures/sun.jpg";
     };
 };
 
