@@ -8,38 +8,75 @@ let stats;
 let renderer, scene, camera, controls, raycaster;
 
 let INTERSECTED;
+let targetPlanet = null;
 
 const pointer = new THREE.Vector2();
 
 //Initializing planets
-const Sun = new CELESTIAL.Star(10, 3, "public_assets/textures/sun.jpg" );
+const Sun = new CELESTIAL.Star(15, 3, "public_assets/textures/sun.jpg" );
 
-const Mercury = new CELESTIAL.Planet(1, 1, (392000000/1.205), 3, 0.027, "public_assets/textures/mercury.jpg");
-const MercuryOrbit = new CELESTIAL.OrbitRing(Mercury);
+const Mercury = new CELESTIAL.Planet(1,
+    69815000 /* Distance from sun */,
+    (392000000/1.205)/* Planet orbit speed */,
+    3 /* Axis rotation speed */,
+    0.027 /* Planet axis rotation */,
+    "public_assets/textures/mercury.jpg" /* Texture */);
 
-const Venus = new CELESTIAL.Planet(1.9, 2, (684000000/3.075), 0.05, 177.36, "public_assets/textures/venus.jpg");
-const VenusOrbit = new CELESTIAL.OrbitRing(Venus);
+const Venus = new CELESTIAL.Planet(1.9,
+    108500000 /* Distance from sun */,
+    (684000000/3.075) /* Planet orbit speed */,
+    0.05 /* Axis rotation speed */,
+    177.36 /* Planet axis rotation */,
+    "public_assets/textures/venus.jpg");
 
-const Earth = new CELESTIAL.Planet(2, 3, (942000000/5), 0.05, -23.5,"public_assets/textures/earth.jpg");
-const Lunar = new CELESTIAL.Moon(1, 4, (2420000/136.61), 0.05, "public_assets/textures/moon.jpg");
-const EarthOrbit = new CELESTIAL.OrbitRing(Earth);
+const Earth = new CELESTIAL.Planet(2,
+    150700000 /* Distance from sun */,
+    (942000000/5) /* Planet orbit speed */,
+    0.05 /* Axis rotation speed */,
+    23.5 /* Planet axis rotation */,
+    "public_assets/textures/earth.jpg");
+const Lunar = new CELESTIAL.Moon(1,
+    4 /* Distance from sun */,
+    (2420000/136.61) /* moon orbit speed */,
+    0.05 /* Axis rotation speed */,
+    "public_assets/textures/moon.jpg");
 
-const Mars = new CELESTIAL.Planet(1.5, 4, (1440000000/9.4), 0.05, 25, "public_assets/textures/mars.jpg");
-const MarsOrbit = new CELESTIAL.OrbitRing(Mars);
+const Mars = new CELESTIAL.Planet(1.5,
+    207940000 /* Distance from sun */,
+    (1440000000/9.4) /* Planet orbit speed */,
+    0.05 /* Axis rotation speed */,
+    25 /* Planet axis rotation */,
+    "public_assets/textures/mars.jpg");
 
-const Jupiter = new CELESTIAL.Planet(5, 8, (4770000000/60), 3, 3.13, "public_assets/textures/jupiter.jpg");
-const JupiterOrbit = new CELESTIAL.OrbitRing(Jupiter);
+const Jupiter = new CELESTIAL.Planet(7,
+    749370000 /* Distance from sun */,
+    (4770000000/60) /* Planet orbit speed */,
+    0.05 /* Axis rotation speed */,
+    3.13 /* Planet axis rotation */,
+    "public_assets/textures/jupiter.jpg");
 
-const Saturn = new CELESTIAL.Planet(4.5, 10, (9120000000/147), 3, 26.73, "public_assets/textures/saturn.jpg");
+const Saturn = new CELESTIAL.Planet(6.5,
+    1450400000 /* Distance from sun */,
+    (9120000000/147) /* Planet orbit speed */,
+    0.05 /* Axis rotation speed */,
+    26.73 /* Planet axis rotation */,
+    "public_assets/textures/saturn.jpg");
 const SaturnRing = new CELESTIAL.PlanetRing(Saturn, 1, 5);
-const SaturnOrbit = new CELESTIAL.OrbitRing(Saturn);
 
-const Uranus = new CELESTIAL.Planet(4, 12, (18400000000/420), 3, 97.77, "public_assets/textures/uranus.jpg");
+const Uranus = new CELESTIAL.Planet(5,
+    2930100000 /* Distance from sun */,
+    (18400000000/420) /* Planet orbit speed */,
+    0.05 /* Axis rotation speed */,
+    97.77 /* Planet axis rotation */,
+    "public_assets/textures/uranus.jpg");
 const UranusRing = new CELESTIAL.PlanetRing(Uranus, 3, 4)
-const UranusOrbit = new CELESTIAL.OrbitRing(Uranus);
 
-const Neptune = new CELESTIAL.Planet(4, 15, (28100000000/825), 3, 28,"public_assets/textures/neptune.jpg");
-const NeptuneOrbit = new CELESTIAL.OrbitRing(Neptune);
+const Neptune = new CELESTIAL.Planet(5,
+    4472100000 /* Distance from sun */,
+    (28100000000/825) /* Planet orbit speed */,
+    0.05 /* Axis rotation speed */,
+    28 /* Planet axis rotation */,
+    "public_assets/textures/neptune.jpg");
 
 
 init()
@@ -58,7 +95,7 @@ function init() {
     // scene
     scene = new THREE.Scene();
     
-    //space HDRI
+    // //space HDRI
     const HDRIloader = new RGBELoader();
     HDRIloader.load('public_assets/textures/HDR_hazy_nebulae.hdr', function(texture){
         texture.mapping = THREE.EquirectangularReflectionMapping;
@@ -69,36 +106,28 @@ function init() {
     scene.add(Sun);
     
     scene.add(Mercury);
-    scene.add(MercuryOrbit);
     
     scene.add(Venus);
-    scene.add(VenusOrbit);
     
     scene.add(Earth);
     scene.add(Lunar);
-    scene.add( EarthOrbit );
     
     scene.add(Mars);
-    scene.add(MarsOrbit);
     
     scene.add(Jupiter);
-    scene.add(JupiterOrbit);
     
     scene.add(Saturn);
     scene.add(SaturnRing);
-    scene.add(SaturnOrbit);
     
     scene.add(Uranus);
     scene.add(UranusRing);
-    scene.add(UranusOrbit);
     
     scene.add(Neptune);
-    scene.add(NeptuneOrbit);
     
     
     //camera
-    camera = new THREE.PerspectiveCamera( 35, window.innerWidth / window.innerHeight, 0.1, 50000 );
-    camera.position.x = 1000;
+    camera = new THREE.PerspectiveCamera( 50, window.innerWidth / window.innerHeight, 0.1, 50000 );
+    camera.position.x = 700;
     camera.position.y = 700;
     
     // orbit controls
@@ -108,7 +137,7 @@ function init() {
         MIDDLE: THREE.MOUSE.DOLLY
     };
     controls.minDistance = 100
-    controls.maxDistance = 1500
+    controls.maxDistance = 5000
     controls.maxPolarAngle = THREE.MathUtils.degToRad(90)
     controls.panSpeed = 1
 
@@ -132,20 +161,26 @@ function onClick( event ){
 
     const intersects = raycaster.intersectObjects( scene.children, true );
 
-    //Select object first hit by raytracer and change color to red
     if ( intersects.length > 0 ) {
-        if ( INTERSECTED != intersects[ 0 ].object) {
-            if ( INTERSECTED ) INTERSECTED.material = INTERSECTED.originalMaterial;
+        INTERSECTED = intersects[ 0 ].object
 
-            INTERSECTED = intersects[ 0 ].object;
-            INTERSECTED.originalMaterial = INTERSECTED.material;
-            INTERSECTED.material = new THREE.MeshBasicMaterial({ color: 0xff0000 })
+        if (intersects[ 0 ].object.position){
+
+            if (intersects[ 0 ].object == Sun){
+                controls.minDistance = 100
+                
+            } else {targetPlanet = INTERSECTED;
+            controls.minDistance = 0}
+            
         }
-    } else {
-        if ( INTERSECTED ) INTERSECTED.material = INTERSECTED.originalMaterial;
 
-        INTERSECTED = null;
+    } else {
+        if ( INTERSECTED.position ) INTERSECTED = null;
+        targetPlanet = INTERSECTED
+        controls.minDistance = 100
     }
+
+
 };
 
 //Controls window resizing
@@ -171,36 +206,32 @@ function animate() {
 function render() {
 
     // Orbit and rotation calculations
-    CELESTIAL.starRotation(Sun);
+    Sun.starRotation();
 
-    CELESTIAL.planetOrbit(Mercury);
-    CELESTIAL.orbitRing(MercuryOrbit);
+    Mercury.planetOrbit();
     
-    CELESTIAL.planetOrbit(Venus);
-    CELESTIAL.orbitRing(VenusOrbit);
+    Venus.planetOrbit();
     
-    CELESTIAL.planetOrbit(Earth);
-    CELESTIAL.moonOrbit(Lunar, Earth);
-    CELESTIAL.orbitRing(EarthOrbit);
+    Earth.planetOrbit();
+    Lunar.moonOrbit( Earth );
 
-    CELESTIAL.planetOrbit(Mars);
-    CELESTIAL.orbitRing(MarsOrbit);
+    Mars.planetOrbit();
 
-    CELESTIAL.planetOrbit(Jupiter);
-    CELESTIAL.orbitRing(JupiterOrbit);
+    Jupiter.planetOrbit();
 
-    CELESTIAL.planetOrbit(Saturn);
-    CELESTIAL.planetRingOrbit(SaturnRing ,Saturn);
-    CELESTIAL.orbitRing(SaturnOrbit);
+    Saturn.planetOrbit();
+    SaturnRing.planetRingOrbit( Saturn );
 
-    CELESTIAL.planetOrbit(Uranus);
-    CELESTIAL.planetRingOrbit(UranusRing ,Uranus);
-    CELESTIAL.orbitRing(UranusOrbit);
+    Uranus.planetOrbit();
+    UranusRing.planetRingOrbit( Uranus );
 
-    CELESTIAL.planetOrbit(Neptune);
-    CELESTIAL.orbitRing(NeptuneOrbit);
+    Neptune.planetOrbit();
 
-
+    if (targetPlanet != null) {
+        CELESTIAL.cameraOrbit(camera, targetPlanet)
+        camera.lookAt(scene.position);
+    }
+    
     controls.update();
     renderer.render( scene, camera );
 };

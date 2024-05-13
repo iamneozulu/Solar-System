@@ -17,12 +17,16 @@ export class Star extends THREE.Mesh{
         this.texture = texture;
         this.rotation.y += 1
     };
+
+    starRotation(){
+        this.rotation.y += 0.001
+    };
 };
 
 export class Planet extends THREE.Mesh{
     constructor(size, planetOrbit, distancePerYear, rotationSpeed, axisTilt, texture){
 
-        const planetMesh = new THREE.SphereGeometry(size, 16, 16);
+        const planetMesh = new THREE.SphereGeometry(size, 24, 24);
 
         const planetTexture = new THREE.MeshBasicMaterial(
             {map: new THREE.TextureLoader().load(texture)})
@@ -33,17 +37,25 @@ export class Planet extends THREE.Mesh{
         super( planetMesh, planetTexture );
 
         this.size = size;
-        this.orbitRadius = planetOrbit * 20;
+        this.orbitRadius = planetOrbit / 3000000;
         this.orbitSpeed = distancePerYear / 600000000000;
         this.rotationSpeed = rotationSpeed;
         this.axisTilt = axisTilt
         this.texture = texture;
     };
+
+    planetOrbit(){
+    
+        this.position.x = this.orbitRadius * Math.cos(this.orbitSpeed * Date.now());
+        this.position.z = this.orbitRadius * Math.sin(this.orbitSpeed * Date.now());
+        this.rotation.x = THREE.MathUtils.degToRad(this.axisTilt)
+        this.rotation.y += this.rotationSpeed
+    };
 };
 
 export class Moon extends THREE.Mesh{
     constructor(size, orbitRadius, orbitSpeed, rotationSpeed, texture){
-        const moonMesh = new THREE.SphereGeometry(size, 8, 8);
+        const moonMesh = new THREE.SphereGeometry(size, 16, 16);
         
         const moonTexture = new THREE.MeshBasicMaterial(
             {map: new THREE.TextureLoader().load(texture)})
@@ -59,52 +71,46 @@ export class Moon extends THREE.Mesh{
         this.rotationSpeed = rotationSpeed;
         this.texture = texture;
     };
+
+    moonOrbit(planet){
+        this.position.x = planet.position.x + this.orbitRadius * Math.cos(this.orbitSpeed * Date.now());
+        this.position.z = planet.position.z + this.orbitRadius * Math.sin(this.orbitSpeed * Date.now());
+    };
 };
 
 export class PlanetRing extends THREE.Mesh{
-    constructor(planet, innerCircumference, outCircumference){
-        const geometry = new THREE.RingGeometry( planet.size + innerCircumference, planet.size + outCircumference, 24); 
+    constructor(planet, innerRadius, outerRadius){
+        const geometry = new THREE.RingGeometry( planet.size + innerRadius, planet.size + outerRadius, 24); 
         const material = new THREE.MeshBasicMaterial( { color: 'lightgray', side: THREE.DoubleSide } );
 
         super( geometry, material )
     };
+
+    planetRingOrbit(planet){
+        this.position.x = planet.position.x
+        this.position.z = planet.position.z
+        this.rotation.x = THREE.MathUtils.degToRad(planet.axisTilt + 270)
+    };
 };
 
-export class OrbitRing extends THREE.Mesh{
-    constructor(planet){
-        const geometry = new THREE.RingGeometry( planet.orbitRadius-1, planet.orbitRadius+1, 62); 
-        const material = new THREE.MeshBasicMaterial( { color: 'lightgray', side: THREE.DoubleSide } );
-
-        super( geometry, material )
-    }
+export function cameraOrbit( camera, planet ){
+        camera.position.x = (planet.orbitRadius + 20) * Math.cos(planet.orbitSpeed * Date.now());
+        camera.position.z = (planet.orbitRadius + 20) * Math.sin(planet.orbitSpeed * Date.now());
+        camera.position.y = planet.position.y + 3
 }
 
-export function starRotation(star){
-    star.rotation.y += 0.001
-};
+// const bulbGeometry = new THREE.SphereGeometry( 0.02, 16, 8 );
+// 				bulbLight = new THREE.PointLight( 0xffee88, 1, 100, 2 );
 
-export function planetOrbit(planet){
-    
-    planet.position.x = planet.orbitRadius * Math.cos(planet.orbitSpeed * Date.now());
-    planet.position.z = planet.orbitRadius * Math.sin(planet.orbitSpeed * Date.now());
-    planet.rotation.x = THREE.MathUtils.degToRad(planet.axisTilt)
-    planet.rotation.y += planet.rotationSpeed
-};
+// 				bulbMat = new THREE.MeshStandardMaterial( {
+// 					emissive: 0xffffee,
+// 					emissiveIntensity: 1,
+// 					color: 0x000000
+// 				} );
+// 				bulbLight.add( new THREE.Mesh( bulbGeometry, bulbMat ) );
+// 				bulbLight.position.set( 0, 2, 0 );
+// 				bulbLight.castShadow = true;
+// 				scene.add( bulbLight );
 
-export function moonOrbit(moon, planet){
-    // planet.position.x = planet.orbitRadius * Math.cos(planet.orbitSpeed * Date.now());
-    // planet.position.z = planet.orbitRadius * Math.sin(planet.orbitSpeed * Date.now());
-
-    moon.position.x = planet.position.x + moon.orbitRadius * Math.cos(moon.orbitSpeed * Date.now());
-    moon.position.z = planet.position.z + moon.orbitRadius * Math.sin(moon.orbitSpeed * Date.now());
-};
-
-export function planetRingOrbit(ring, planet){
-    ring.position.x = planet.position.x
-    ring.position.z = planet.position.z
-    ring.rotation.x = THREE.MathUtils.degToRad(planet.axisTilt + 270)
-};
-
-export function orbitRing(orbitRing){
-    orbitRing.rotation.x = THREE.MathUtils.degToRad(270)
-};
+// 				hemiLight = new THREE.HemisphereLight( 0xddeeff, 0x0f0e0d, 0.02 );
+// 				scene.add( hemiLight );
