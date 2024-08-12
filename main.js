@@ -33,6 +33,7 @@ const UranusRing = new CELESTIAL.PlanetRing(Uranus, 3, 4);
 const Neptune = new CELESTIAL.Planet(5, 4472100000, (28100000000 / 825), 0.05, 28, "public_assets/textures/neptune.jpg");
 
 init();
+updateFPS()
 animate();
 
 // Initializes essential features
@@ -121,7 +122,7 @@ function onClick(event) {
         }
         targetPlanet = INTERSECTED;
         controls.minDistance = 100;
-        closeModal()
+        closeModal();
     }
 }
 
@@ -166,7 +167,6 @@ function animate() {
     requestAnimationFrame(animate);
     render();
     stats.update();
-    updateFPS();
 }
 
 // Renders the scene and updates objects
