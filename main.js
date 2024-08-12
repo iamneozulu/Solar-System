@@ -12,6 +12,12 @@ let targetPlanet = null;
 
 const pointer = new THREE.Vector2();
 
+let lastFrameTime = performance.now();
+let frameCount = 0;
+let fps = 0;
+const fpsThreshold = 30; // Minimum FPS threshold for hiding the loading screen
+let loadingScreen = document.getElementById('loading-screen');
+
 //Initializing planets
 const Sun = new CELESTIAL.Star(15, 3, "public_assets/textures/sun.jpg" );
 
@@ -193,6 +199,28 @@ function onWindowResize() {
 
 };
 
+//FPS to stop loading screen
+function updateFPS() {
+    const now = performance.now();
+    const deltaTime = now - lastFrameTime;
+    frameCount++;
+
+    if (deltaTime >= 1000) { // Update every second
+        fps = frameCount / (deltaTime / 1000);
+        frameCount = 0;
+        lastFrameTime = now;
+
+        if (fps >= fpsThreshold) {
+            // Hide the loading screen when FPS is above the threshold
+            if (loadingScreen) {
+                loadingScreen.style.display = "none";
+            }
+        }
+    }
+
+    requestAnimationFrame(updateFPS);
+}
+
 //Animates "prints to the screen"
 function animate() {
 
@@ -200,6 +228,7 @@ function animate() {
 
     render()
     stats.update();
+    updateFPS()
 };
 
 //Handles calculating planet orbits

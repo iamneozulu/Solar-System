@@ -1,18 +1,87 @@
 <!DOCTYPE html>
 <html lang="en">
-	<head>
-		<meta charset="utf-8">
-		<title>Solar System</title>
-		<link rel="stylesheet" href="./style.css">
-	</head>
-	<body>
-		<!-- <div class="root">
-			<h1 class="neo">The Solar System</h1>
-		</div> -->
-		<script type="module" src="/main.js"></script>
-		<noscript>Lol, you dont support js lame</noscript>
-		<!-- <div class="bottom">
-			<h1> the end</h1> -->
-		</div>
-	</body>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solar System</title>
+    <link rel="stylesheet" href="./style.css">
+    <style>
+        /* Basic styling for the welcome page */
+        #welcome-page {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            font-size: 2em;
+            color: black;
+            text-align: center;
+        }
+
+        /* Basic styling for the loading screen */
+        #loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            font-size: 2em;
+            color: black;
+        }
+
+        /* Basic styling for the main content */
+        #main-content {
+            display: none; /* Hidden by default */
+        }
+    </style>
+</head>
+<body>
+    <!-- Welcome Page -->
+    <div id="welcome-page">
+        <div>
+            <h1>Welcome to Our Site!</h1>
+            <button id="start-button">Start</button>
+        </div>
+    </div>
+
+    <!-- Loading screen -->
+    <div id="loading-screen">Loading...</div>
+
+    <!-- Main content -->
+    <div id="main-content">
+        <div class="root">
+            <h1 class="neo">The Solar System</h1>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script type="module" src="/main.js"></script>
+    <script>
+        document.getElementById('start-button').addEventListener('click', () => {
+            // Hide the welcome page
+            document.getElementById('welcome-page').style.display = 'none';
+            // Show the loading screen
+            document.getElementById('loading-screen').style.display = 'flex';
+            
+            // Simulate loading delay
+            setTimeout(() => {
+                // Hide the loading screen
+                document.getElementById('loading-screen').style.display = 'none';
+                // Show the main content
+                document.getElementById('main-content').style.display = 'block';
+            }, 2000); // Simulate a 2-second loading time
+        });
+    </script>
+    <noscript>Your browser does not support JavaScript.</noscript>
+</body>
 </html>
