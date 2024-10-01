@@ -71,14 +71,14 @@ function init() {
     scene.add(Neptune);
 
     // Camera
-    camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 50000);
-    camera.position.set(700, 700, 700);
+    camera = new THREE.PerspectiveCamera(80, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera.position.set(200, 0, 0);
 
     // Orbit Controls
     controls = new OrbitControls(camera, renderer.domElement);
     controls.mouseButtons = { LEFT: THREE.MOUSE.ROTATE, MIDDLE: THREE.MOUSE.DOLLY };
-    controls.minDistance = 100;
-    controls.maxDistance = 5000;
+    controls.minDistance = 50;
+    controls.maxDistance = 600;
     controls.maxPolarAngle = THREE.MathUtils.degToRad(90);
     controls.panSpeed = 1;
 
@@ -107,7 +107,7 @@ function onClick(event) {
 
         if (intersectedObject.position) {
             if (intersectedObject === Sun) {
-                controls.minDistance = 100;
+                controls.minDistance = 50;
             } else {
                 targetPlanet = intersectedObject;
                 controls.minDistance = 0;
@@ -123,7 +123,7 @@ function onClick(event) {
         }
 
         targetPlanet = INTERSECTED;
-        controls.minDistance = 100;
+        controls.minDistance = 50;
 
         closeModal();
     }

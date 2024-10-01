@@ -124,23 +124,7 @@ export class PlanetRing extends THREE.Mesh{
 };
 
 export function cameraOrbit( camera, planet ){
-        camera.position.x = (planet.orbitRadius + 20) * Math.cos(planet.orbitSpeed * Date.now());
-        camera.position.z = (planet.orbitRadius + 20) * Math.sin(planet.orbitSpeed * Date.now());
+        camera.position.x = (planet.orbitRadius + 15) * Math.cos(planet.orbitSpeed * Date.now());
+        camera.position.z = (planet.orbitRadius + 15) * Math.sin(planet.orbitSpeed * Date.now());
         camera.position.y = planet.position.y + 3
 }
-
-// const bulbGeometry = new THREE.SphereGeometry( 0.02, 16, 8 );
-// 				bulbLight = new THREE.PointLight( 0xffee88, 1, 100, 2 );
-
-// 				bulbMat = new THREE.MeshStandardMaterial( {
-// 					emissive: 0xffffee,
-// 					emissiveIntensity: 1,
-// 					color: 0x000000
-// 				} );
-// 				bulbLight.add( new THREE.Mesh( bulbGeometry, bulbMat ) );
-// 				bulbLight.position.set( 0, 2, 0 );
-// 				bulbLight.castShadow = true;
-// 				scene.add( bulbLight );
-
-// 				hemiLight = new THREE.HemisphereLight( 0xddeeff, 0x0f0e0d, 0.02 );
-// 				scene.add( hemiLight );
