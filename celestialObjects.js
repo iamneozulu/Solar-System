@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 
 export class Star extends THREE.Mesh{
-    constructor(size, rotationSpeed, texture){
+    constructor(name, size, rotationSpeed, texture){
         const starMesh = new THREE.SphereGeometry(size, 32, 32);
         
         const starTexture = new THREE.MeshBasicMaterial(
@@ -12,6 +12,7 @@ export class Star extends THREE.Mesh{
             
         super( starMesh, starTexture );
 
+        this.name = name
         this.size = size;
         this.rotationSpeed = rotationSpeed;
         this.texture = texture;
@@ -21,10 +22,14 @@ export class Star extends THREE.Mesh{
     starRotation(){
         this.rotation.y += 0.001
     };
+
+    objectName(){
+        return this.name
+    }
 };
 
 export class Planet extends THREE.Mesh{
-    constructor(size, planetOrbit, distancePerYear, rotationSpeed, axisTilt, texture){
+    constructor(name, size, planetOrbit, distancePerYear, rotationSpeed, axisTilt, texture){
 
         const planetMesh = new THREE.SphereGeometry(size, 24, 24);
 
@@ -36,6 +41,7 @@ export class Planet extends THREE.Mesh{
 
         super( planetMesh, planetTexture );
 
+        this.name = name
         this.size = size;
         this.orbitRadius = planetOrbit / 3000000;
         this.orbitSpeed = distancePerYear / 600000000000;
@@ -51,12 +57,17 @@ export class Planet extends THREE.Mesh{
         this.rotation.x = THREE.MathUtils.degToRad(this.axisTilt)
         this.rotation.y += this.rotationSpeed
     };
+
+    objectName(){
+        return this.name
+    }
 };
 
 export class Moon extends THREE.Mesh{
-    constructor(size, orbitRadius, orbitSpeed, rotationSpeed, texture){
+    constructor(planet, name, size, orbitRadius, orbitSpeed, rotationSpeed, texture){
+
         const moonMesh = new THREE.SphereGeometry(size, 16, 16);
-        
+
         const moonTexture = new THREE.MeshBasicMaterial(
             {map: new THREE.TextureLoader().load(texture)})
 
@@ -65,6 +76,8 @@ export class Moon extends THREE.Mesh{
             
         super( moonMesh, moonTexture );
 
+        this.name = name
+        this.planet = planet
         this.size = size;
         this.orbitRadius = orbitRadius;
         this.orbitSpeed = orbitSpeed / 9000000;
@@ -72,25 +85,42 @@ export class Moon extends THREE.Mesh{
         this.texture = texture;
     };
 
-    moonOrbit(planet){
-        this.position.x = planet.position.x + this.orbitRadius * Math.cos(this.orbitSpeed * Date.now());
-        this.position.z = planet.position.z + this.orbitRadius * Math.sin(this.orbitSpeed * Date.now());
+    moonOrbit(){
+        this.position.x = this.planet.position.x + this.orbitRadius * Math.cos(this.orbitSpeed * Date.now());
+        this.position.z = this.planet.position.z + this.orbitRadius * Math.sin(this.orbitSpeed * Date.now());
     };
+
+    hostPlanet(){
+        return this.planet
+    }
+
+    objectName(){
+        return this.name
+    }
 };
 
 export class PlanetRing extends THREE.Mesh{
     constructor(planet, innerRadius, outerRadius){
-        const geometry = new THREE.RingGeometry( planet.size + innerRadius, planet.size + outerRadius, 24); 
+
+        const geometry = new THREE.RingGeometry( planet.size + innerRadius, planet.size + outerRadius, 24);
+
         const material = new THREE.MeshBasicMaterial( { color: 'lightgray', side: THREE.DoubleSide } );
 
         super( geometry, material )
+
+        this.planet = planet
     };
 
-    planetRingOrbit(planet){
-        this.position.x = planet.position.x
-        this.position.z = planet.position.z
-        this.rotation.x = THREE.MathUtils.degToRad(planet.axisTilt + 270)
+    hostPlanet(){
+        return this.planet
+    }
+
+    planetRingOrbit(){
+        this.position.x = this.planet.position.x
+        this.position.z = this.planet.position.z
+        this.rotation.x = THREE.MathUtils.degToRad(this.planet.axisTilt + 270)
     };
+
 };
 
 export function cameraOrbit( camera, planet ){

@@ -18,19 +18,20 @@ let fps = 0;
 const fpsThreshold = 30; // Minimum FPS threshold for hiding the loading screen
 const loadingScreen = document.getElementById('loading-screen');
 
+
 // Initialize celestial objects
-const Sun = new CELESTIAL.Star(15, 3, "public_assets/textures/sun.jpg");
-const Mercury = new CELESTIAL.Planet(1, 69815000, (392000000 / 1.205), 3, 0.027, "public_assets/textures/mercury.jpg");
-const Venus = new CELESTIAL.Planet(1.9, 108500000, (684000000 / 3.075), 0.05, 177.36, "public_assets/textures/venus.jpg");
-const Earth = new CELESTIAL.Planet(2, 150700000, (942000000 / 5), 0.05, 23.5, "public_assets/textures/earth.jpg");
-const Lunar = new CELESTIAL.Moon(1, 4, (2420000 / 136.61), 0.05, "public_assets/textures/moon.jpg");
-const Mars = new CELESTIAL.Planet(1.5, 207940000, (1440000000 / 9.4), 0.05, 25, "public_assets/textures/mars.jpg");
-const Jupiter = new CELESTIAL.Planet(7, 749370000, (4770000000 / 60), 0.05, 3.13, "public_assets/textures/jupiter.jpg");
-const Saturn = new CELESTIAL.Planet(6.5, 1450400000, (9120000000 / 147), 0.05, 26.73, "public_assets/textures/saturn.jpg");
+const Sun = new CELESTIAL.Star("Sun", 15, 3, "public_assets/textures/sun.jpg");
+const Mercury = new CELESTIAL.Planet("Mercury", 1, 69815000, (392000000 / 1.205), 3, 0.027, "public_assets/textures/mercury.jpg");
+const Venus = new CELESTIAL.Planet("Venus", 1.9, 108500000, (684000000 / 3.075), 0.05, 177.36, "public_assets/textures/venus.jpg");
+const Earth = new CELESTIAL.Planet("Earth", 2, 150700000, (942000000 / 5), 0.05, 23.5, "public_assets/textures/earth.jpg");
+const Lunar = new CELESTIAL.Moon(Earth, "Lunar", 1, 4, (2420000 / 136.61), 0.05, "public_assets/textures/moon.jpg");
+const Mars = new CELESTIAL.Planet("Mars", 1.5, 207940000, (1440000000 / 9.4), 0.05, 25, "public_assets/textures/mars.jpg");
+const Jupiter = new CELESTIAL.Planet("Jupiter", 7, 749370000/2, (4770000000 / 60), 0.05, 3.13, "public_assets/textures/jupiter.jpg");
+const Saturn = new CELESTIAL.Planet("Saturn", 6.5, 1450400000/2, (9120000000 / 147), 0.05, 26.73, "public_assets/textures/saturn.jpg");
 const SaturnRing = new CELESTIAL.PlanetRing(Saturn, 1, 5);
-const Uranus = new CELESTIAL.Planet(5, 2930100000, (18400000000 / 420), 0.05, 97.77, "public_assets/textures/uranus.jpg");
+const Uranus = new CELESTIAL.Planet("Uranus", 5, 2930100000/3, (18400000000 / 420), 0.05, 97.77, "public_assets/textures/uranus.jpg");
 const UranusRing = new CELESTIAL.PlanetRing(Uranus, 3, 4);
-const Neptune = new CELESTIAL.Planet(5, 4472100000, (28100000000 / 825), 0.05, 28, "public_assets/textures/neptune.jpg");
+const Neptune = new CELESTIAL.Planet("Neptune", 5, 4472100000/3.5, (28100000000 / 825), 0.05, 28, "public_assets/textures/neptune.jpg");
 
 init();
 updateFPS()
@@ -113,15 +114,17 @@ function onClick(event) {
             }
 
             // Update modal content and open it
-            document.getElementById('modalText').textContent = `You clicked on ${intersectedObject.name || 'an object'}`;
-            openModal();
+            modalContent(intersectedObject)
+            
         }
     } else {
         if (INTERSECTED && INTERSECTED.position) {
             INTERSECTED = null;
         }
+
         targetPlanet = INTERSECTED;
         controls.minDistance = 100;
+
         closeModal();
     }
 }
@@ -152,6 +155,41 @@ function updateFPS() {
     requestAnimationFrame(updateFPS);
 }
 
+// Creates and formats content for modal
+async function modalContent( object ) {
+
+    const planetName = object.objectName(); // Get the planet name
+    const url = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(planetName)}`;
+
+
+    try {
+        // Fetch the Wikipedia summary
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        const data = await response.json();
+
+        // Check if the data contains an extract
+        const modalContent = data.extract ? data.extract : "No summary available.";
+
+        // Set the modal content
+        document.getElementById('modalText').textContent = modalContent;
+        document.querySelector('.modal-content h2').textContent = planetName;
+
+        // Open the modal
+        openModal();
+    } catch (error) {
+        console.error('Error fetching Wikipedia content:', error);
+        document.getElementById('modalText').textContent = "Error loading content.";
+        document.querySelector('.modal-content h2').textContent = planetName;
+
+        // Open the modal even if there's an error
+        openModal();
+    }
+
+}
+
 // Opens the modal dialog
 function openModal() {
     document.getElementById('myModal').style.display = 'flex';
@@ -176,18 +214,23 @@ function render() {
     Mercury.planetOrbit();
     Venus.planetOrbit();
     Earth.planetOrbit();
-    Lunar.moonOrbit(Earth);
+    Lunar.moonOrbit();
     Mars.planetOrbit();
     Jupiter.planetOrbit();
     Saturn.planetOrbit();
-    SaturnRing.planetRingOrbit(Saturn);
+    SaturnRing.planetRingOrbit();
     Uranus.planetOrbit();
-    UranusRing.planetRingOrbit(Uranus);
+    UranusRing.planetRingOrbit();
     Neptune.planetOrbit();
 
     if (targetPlanet) {
-        CELESTIAL.cameraOrbit(camera, targetPlanet);
-        camera.lookAt(scene.position);
+        try {
+            CELESTIAL.cameraOrbit(camera, targetPlanet.hostPlanet());
+            camera.lookAt(scene.position);
+        } catch {
+            CELESTIAL.cameraOrbit(camera, targetPlanet);
+            camera.lookAt(scene.position);
+        }
     }
 
     controls.update();
