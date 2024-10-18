@@ -50,7 +50,7 @@ function init() {
 
     // Space HDRI
     const HDRIloader = new RGBELoader();
-    HDRIloader.load('public_assets/textures/HDR_hazy_nebulae.hdr', function (texture) {
+    HDRIloader.load('./static/images/HDR_hazy_nebulae.hdr', function (texture) {
         texture.mapping = THREE.EquirectangularReflectionMapping;
         scene.background = texture;
         scene.environment = texture;
