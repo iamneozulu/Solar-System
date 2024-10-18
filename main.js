@@ -21,17 +21,17 @@ const loadingScreen = document.getElementById('loading-screen');
 
 // Initialize celestial objects
 const Sun = new CELESTIAL.Star("Sun", 15, 3, "public_assets/textures/sun.jpg");
-const Mercury = new CELESTIAL.Planet("Mercury", 1, 69815000, (392000000 / 1.205), 3, 0.027, "public_assets/textures/mercury.jpg");
-const Venus = new CELESTIAL.Planet("Venus", 1.9, 108500000, (684000000 / 3.075), 0.05, 177.36, "public_assets/textures/venus.jpg");
-const Earth = new CELESTIAL.Planet("Earth", 2, 150700000, (942000000 / 5), 0.05, 23.5, "public_assets/textures/earth.jpg");
-const Lunar = new CELESTIAL.Moon(Earth, "Lunar", 1, 4, (2420000 / 136.61), 0.05, "public_assets/textures/moon.jpg");
-const Mars = new CELESTIAL.Planet("Mars", 1.5, 207940000, (1440000000 / 9.4), 0.05, 25, "public_assets/textures/mars.jpg");
-const Jupiter = new CELESTIAL.Planet("Jupiter", 7, 749370000/2, (4770000000 / 60), 0.05, 3.13, "public_assets/textures/jupiter.jpg");
-const Saturn = new CELESTIAL.Planet("Saturn", 6.5, 1450400000/2, (9120000000 / 147), 0.05, 26.73, "public_assets/textures/saturn.jpg");
+const Mercury = new CELESTIAL.Planet("Mercury", 1, 69815000, (392000000 / 1.205), 3, 0.027, "./public_assets/textures/mercury.jpg");
+const Venus = new CELESTIAL.Planet("Venus", 1.9, 108500000, (684000000 / 3.075), 0.05, 177.36, "./public_assets/textures/venus.jpg");
+const Earth = new CELESTIAL.Planet("Earth", 2, 150700000, (942000000 / 5), 0.05, 23.5, "./public_assets/textures/earth.jpg");
+const Lunar = new CELESTIAL.Moon(Earth, "Lunar", 1, 4, (2420000 / 136.61), 0.05, "./public_assets/textures/moon.jpg");
+const Mars = new CELESTIAL.Planet("Mars", 1.5, 207940000, (1440000000 / 9.4), 0.05, 25, "./public_assets/textures/mars.jpg");
+const Jupiter = new CELESTIAL.Planet("Jupiter", 7, 749370000/2, (4770000000 / 60), 0.05, 3.13, "./public_assets/textures/jupiter.jpg");
+const Saturn = new CELESTIAL.Planet("Saturn", 6.5, 1450400000/2, (9120000000 / 147), 0.05, 26.73, "./public_assets/textures/saturn.jpg");
 const SaturnRing = new CELESTIAL.PlanetRing(Saturn, 1, 5);
-const Uranus = new CELESTIAL.Planet("Uranus", 5, 2930100000/3, (18400000000 / 420), 0.05, 97.77, "public_assets/textures/uranus.jpg");
+const Uranus = new CELESTIAL.Planet("Uranus", 5, 2930100000/3, (18400000000 / 420), 0.05, 97.77, "./public_assets/textures/uranus.jpg");
 const UranusRing = new CELESTIAL.PlanetRing(Uranus, 3, 4);
-const Neptune = new CELESTIAL.Planet("Neptune", 5, 4472100000/3.5, (28100000000 / 825), 0.05, 28, "public_assets/textures/neptune.jpg");
+const Neptune = new CELESTIAL.Planet("Neptune", 5, 4472100000/3.5, (28100000000 / 825), 0.05, 28, "./public_assets/textures/neptune.jpg");
 
 init();
 updateFPS()
@@ -72,7 +72,7 @@ function init() {
 
     // Camera
     camera = new THREE.PerspectiveCamera(80, window.innerWidth / window.innerHeight, 0.1, 1000);
-    camera.position.set(200, 0, 0);
+    camera.position.set(100, 0, 2);
 
     // Orbit Controls
     controls = new OrbitControls(camera, renderer.domElement);
@@ -231,6 +231,8 @@ function render() {
             CELESTIAL.cameraOrbit(camera, targetPlanet);
             camera.lookAt(scene.position);
         }
+    } else {
+        closeModal();
     }
 
     controls.update();
