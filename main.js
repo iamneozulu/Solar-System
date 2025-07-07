@@ -4,7 +4,7 @@ import { RGBELoader } from './node_modules/three/examples/jsm/loaders/RGBELoader
 import { OrbitControls } from './node_modules/three/examples/jsm/controls/OrbitControls.js';
 // import Stats from './node_modules/three/examples/jsm/libs/stats.module.js';
 
-let stats;
+// let stats;
 let renderer, scene, camera, controls, raycaster;
 
 let INTERSECTED;
@@ -90,7 +90,7 @@ function init() {
     loadingManager.itemStart('hdri');
     const HDRIloader = new RGBELoader();
     HDRIloader.setPath('./static/images/');
-    HDRIloader.load('HDR_hazy_nebulae.hdr', function (texture) {
+    HDRIloader.load('./static/images/HDR_hazy_nebulae.hdr', function (texture) {
         texture.mapping = THREE.EquirectangularReflectionMapping;
         scene.background = texture;
         scene.environment = texture;
