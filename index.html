@@ -9,40 +9,27 @@
 <body>
     <!-- Loading Screen -->
     <div id="loadingScreen">
-        <div class="loader"></div>
-        <p>Loading Solar System...</p>
+        <div class="loader">
+            <div class="loader-center"></div>
+            <div class="loader-dot"></div>
+        </div>
+        <h1>The Solar System</h1>
+        <button id="launchBtn">
+            Launch Solar System
+        </button>
     </div>
 
-    <!-- Modal Structure -->
-    <div id="planetInfo" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeModal()">&times;</span>
-            <h2>Object Information</h2>
-            <p id="modalText">Details about the clicked object will appear here.</p>
+    <!-- Info Sidebar -->
+    <div id="infoSidebar" class="sidebar">
+        <div class="sidebar-content">
+            <span class="close" onclick="closeSidebar()">&times;</span>
+            <h2 id="sidebarTitle">Object Information</h2>
+            <p id="sidebarText">Details about the clicked object will appear here.</p>
         </div>
     </div>
+
         <!-- JavaScript -->
         <script type="module" src="./main.js"></script>
-        <script>
-            // Hide loading screen when page is fully loaded
-            window.addEventListener('load', function() {
-                document.getElementById('loadingScreen').style.display = 'none';
-            });
-
-            // Function to open modal and display information
-            // Close modal function
-            function closeModal() {
-                document.getElementById('planetInfo').style.display = 'none';
-            }
-
-            // Close modal when clicking outside of the modal content
-            window.onclick = function(event) {
-                const modal = document.getElementById('planetInfo');
-                if (event.target === modal) {
-                    closeModal();
-                }
-            };
-        </script>
         <noscript>Your browser does not support JavaScript.</noscript>
 </body>
 </html>

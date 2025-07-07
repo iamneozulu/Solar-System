@@ -2,7 +2,7 @@ import * as THREE from './node_modules/three';
 import * as CELESTIAL from './celestialObjects.js';
 import { RGBELoader } from './node_modules/three/examples/jsm/loaders/RGBELoader.js';
 import { OrbitControls } from './node_modules/three/examples/jsm/controls/OrbitControls.js';
-import Stats from './node_modules/three/examples/jsm/libs/stats.module.js';
+// import Stats from './node_modules/three/examples/jsm/libs/stats.module.js';
 
 let stats;
 let renderer, scene, camera, controls, raycaster;
@@ -14,28 +14,66 @@ const pointer = new THREE.Vector2();
 
 let lastFrameTime = performance.now(); 
 let frameCount = 0;
-let fps = 0;
-const fpsThreshold = 30; // Minimum FPS threshold for hiding the loading screen
-const loadingScreen = document.getElementById('loading-screen');
+// let fps = 0;
 
+const loadingManager = new THREE.LoadingManager();
+loadingManager.onLoad = function () {
+    const btn = document.getElementById('launchBtn');
+    btn.style.display = 'block';
+    setTimeout(() => btn.classList.add('visible'), 10);
+};
 
-// Initialize celestial objects
-const Sun = new CELESTIAL.Star("Sun", 15, 3, "./static/images/sun.jpg");
-const Mercury = new CELESTIAL.Planet("Mercury", 1, 69815000, (392000000 / 1.205), 3, 0.027, "./static/images/mercury.jpg");
-const Venus = new CELESTIAL.Planet("Venus", 1.9, 108500000, (684000000 / 3.075), 0.05, 177.36, "./static/images/venus.jpg");
-const Earth = new CELESTIAL.Planet("Earth", 2, 150700000, (942000000 / 5), 0.05, 23.5, "./static/images/earth.jpg");
-const Lunar = new CELESTIAL.Moon(Earth, "Lunar", 1, 4, (2420000 / 136.61), 0.05, "./static/images/moon.jpg");
-const Mars = new CELESTIAL.Planet("Mars", 1.5, 207940000, (1440000000 / 9.4), 0.05, 25, "./static/images/mars.jpg");
-const Jupiter = new CELESTIAL.Planet("Jupiter", 7, 749370000/2, (4770000000 / 60), 0.05, 3.13, "./static/images/jupiter.jpg");
-const Saturn = new CELESTIAL.Planet("Saturn", 6.5, 1450400000/2, (9120000000 / 147), 0.05, 26.73, "./static/images/saturn.jpg");
+const textureLoader = new THREE.TextureLoader(loadingManager);
+
+//--------------------------------------------------------------------------------------------------------------------------------------------
+
+const Sun = new CELESTIAL.Star("Sun", 15, 3, "./static/images/sun.jpg", textureLoader);
+// Mercury
+const Mercury = new CELESTIAL.Planet("Mercury", 1, 69815000, (392000000 / 1.205), 3, 0.027, "./static/images/mercury.jpg", textureLoader);
+const MercuryOrbitPath = new CELESTIAL.createOrbitPath(Mercury.orbitRadius)
+MercuryOrbitPath.userData.planet = Mercury;
+// Venus
+const Venus = new CELESTIAL.Planet("Venus", 1.9, 108500000, (684000000 / 3.075), 0.05, 177.36, "./static/images/venus.jpg", textureLoader);
+const VenusOrbitPath = new CELESTIAL.createOrbitPath(Venus.orbitRadius)
+VenusOrbitPath.userData.planet = Venus;
+// Earth
+const Earth = new CELESTIAL.Planet("Earth", 2, 150700000, (942000000 / 5), 0.05, 23.5, "./static/images/earth.jpg", textureLoader);
+const EarthOrbitPath = new CELESTIAL.createOrbitPath(Earth.orbitRadius);
+EarthOrbitPath.userData.planet = Earth;
+const Lunar = new CELESTIAL.Moon(Earth, "Lunar", 1, 4, (2420000 / 136.61), 0.05, "./static/images/moon.jpg", textureLoader);
+// Mars
+const Mars = new CELESTIAL.Planet("Mars", 1.5, 207940000, (1440000000 / 9.4), 0.05, 25, "./static/images/mars.jpg", textureLoader);
+const MarsOrbitPath = new CELESTIAL.createOrbitPath(Mars.orbitRadius);
+MarsOrbitPath.userData.planet = Mars;
+// Jupiter
+const Jupiter = new CELESTIAL.Planet("Jupiter", 7, 749370000/2, (4770000000 / 60), 0.05, 3.13, "./static/images/jupiter.jpg", textureLoader);
+const JupiterOrbitPath = new CELESTIAL.createOrbitPath(Jupiter.orbitRadius);
+JupiterOrbitPath.userData.planet = Jupiter;
+// Saturn
+const Saturn = new CELESTIAL.Planet("Saturn", 6.5, 1450400000/2, (9120000000 / 147), 0.05, 26.73, "./static/images/saturn.jpg", textureLoader);
+const SaturnOrbitPath = new CELESTIAL.createOrbitPath(Saturn.orbitRadius);
+SaturnOrbitPath.userData.planet = Saturn;
 const SaturnRing = new CELESTIAL.PlanetRing(Saturn, 1, 5);
-const Uranus = new CELESTIAL.Planet("Uranus", 5, 2930100000/3, (18400000000 / 420), 0.05, 97.77, "./static/images/uranus.jpg");
+// Uranus
+const Uranus = new CELESTIAL.Planet("Uranus", 5, 2930100000/3, (18400000000 / 420), 0.05, 97.77, "./static/images/uranus.jpg", textureLoader);
+const UranusOrbitPath = new CELESTIAL.createOrbitPath(Uranus.orbitRadius);
+UranusOrbitPath.userData.planet = Uranus;
 const UranusRing = new CELESTIAL.PlanetRing(Uranus, 3, 4);
-const Neptune = new CELESTIAL.Planet("Neptune", 5, 4472100000/3.5, (28100000000 / 825), 0.05, 28, "./static/images/neptune.jpg");
+// Neptune
+const Neptune = new CELESTIAL.Planet("Neptune", 5, 4472100000/3.5, (28100000000 / 825), 0.05, 28, "./static/images/neptune.jpg", textureLoader);
+const NeptuneOrbitPath = new CELESTIAL.createOrbitPath(Neptune.orbitRadius);
+NeptuneOrbitPath.userData.planet = Neptune;
+// Astroid Belts
+const asteroidBelt = new CELESTIAL.AsteroidBelt(1500, 90, 110, 0xb2b2b2, 0.5);
+const kuiperBelt = new CELESTIAL.AsteroidBelt(15000, 500, 600, 0xb2b2b2, 0.2);
+
+//--------------------------------------------------------------------------------------------------------------------------------------------
 
 init();
 updateFPS()
 animate();
+
+//--------------------------------------------------------------------------------------------------------------------------------------------
 
 // Initializes essential features
 function init() {
@@ -49,51 +87,89 @@ function init() {
     scene = new THREE.Scene();
 
     // Space HDRI
+    loadingManager.itemStart('hdri');
     const HDRIloader = new RGBELoader();
     HDRIloader.setPath('./static/images/');
-    HDRIloader.load('./static/images/HDR_hazy_nebulae.hdr', function (texture) {
+    HDRIloader.load('HDR_hazy_nebulae.hdr', function (texture) {
         texture.mapping = THREE.EquirectangularReflectionMapping;
         scene.background = texture;
         scene.environment = texture;
+        loadingManager.itemEnd('hdri');
     });
+
+    //------------------------------------------------------------------
 
     // Add objects to the scene
     scene.add(Sun);
+    //Mercury
     scene.add(Mercury);
+    scene.add(MercuryOrbitPath);
+    // Venus
     scene.add(Venus);
+    scene.add(VenusOrbitPath);
+    // Earth
     scene.add(Earth);
+    scene.add(EarthOrbitPath);
     scene.add(Lunar);
+    // Mars
     scene.add(Mars);
+    scene.add(MarsOrbitPath);
+    // Jupiter
     scene.add(Jupiter);
+    scene.add(JupiterOrbitPath);
+    // Saturn
     scene.add(Saturn);
+    scene.add(SaturnOrbitPath);
     scene.add(SaturnRing);
+    // Uranus
     scene.add(Uranus);
+    scene.add(UranusOrbitPath);
     scene.add(UranusRing);
+    // Neptune
     scene.add(Neptune);
+    scene.add(NeptuneOrbitPath);
+    // Asteroid belt
+    scene.add(asteroidBelt);
+    scene.add(kuiperBelt);
+
+    //-----------------------------------------------------------------
 
     // Camera
-    camera = new THREE.PerspectiveCamera(80, window.innerWidth / window.innerHeight, 0.1, 1000);
-    camera.position.set(100, 0, 2);
+    camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 5000);
+    camera.position.set(170, 20, 2);
+
+    //-----------------------------------------------------------------
 
     // Orbit Controls
     controls = new OrbitControls(camera, renderer.domElement);
     controls.mouseButtons = { LEFT: THREE.MOUSE.ROTATE, MIDDLE: THREE.MOUSE.DOLLY };
     controls.minDistance = 50;
-    controls.maxDistance = 600;
+    controls.maxDistance = 1000;
     controls.maxPolarAngle = THREE.MathUtils.degToRad(90);
     controls.panSpeed = 1;
+
+    //-----------------------------------------------------------------
 
     // Raycaster
     raycaster = new THREE.Raycaster();
 
-    // Stats
-    stats = new Stats();
-    document.body.appendChild(stats.dom);
+    //-----------------------------------------------------------------
+
+    // // Stats
+    // stats = new Stats();
+    // document.body.appendChild(stats.dom);
+
+    //-----------------------------------------------------------------
 
     // Event listeners
     window.addEventListener('resize', onWindowResize);
     document.addEventListener('click', onClick);
+    document.getElementById('launchBtn').onclick = function() {
+        document.getElementById('loadingScreen').style.display = 'none';
+    };
 }
+
+//--------------------------------------------------------------------------------------------------------------------------------------------
 
 // Handles object click events
 function onClick(event) {
@@ -106,6 +182,14 @@ function onClick(event) {
     if (intersects.length > 0) {
         const intersectedObject = intersects[0].object;
 
+        // If orbit path is clicked, select its planet
+        if (intersectedObject.userData.isOrbitPath && intersectedObject.userData.planet) {
+            targetPlanet = intersectedObject.userData.planet;
+            controls.minDistance = 0;
+            modalContent(targetPlanet);
+            return;
+        }
+
         if (intersectedObject.position) {
             if (intersectedObject === Sun) {
                 controls.minDistance = 50;
@@ -113,22 +197,19 @@ function onClick(event) {
                 targetPlanet = intersectedObject;
                 controls.minDistance = 0;
             }
-
-            // Update modal content and open it
-            modalContent(intersectedObject)
-            
+            modalContent(intersectedObject);
         }
     } else {
         if (INTERSECTED && INTERSECTED.position) {
             INTERSECTED = null;
         }
-
         targetPlanet = INTERSECTED;
         controls.minDistance = 50;
-
         closeModal();
     }
 }
+
+//--------------------------------------------------------------------------------------------------------------------------------------------
 
 // Handles window resizing
 function onWindowResize() {
@@ -136,6 +217,8 @@ function onWindowResize() {
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
 }
+
+//--------------------------------------------------------------------------------------------------------------------------------------------
 
 // Updates FPS and manages the loading screen
 function updateFPS() {
@@ -147,66 +230,50 @@ function updateFPS() {
         fps = frameCount / (deltaTime / 1000);
         frameCount = 0;
         lastFrameTime = now;
-
-        if (fps >= fpsThreshold && loadingScreen) {
-            loadingScreen.style.display = "none";
-        }
     }
 
     requestAnimationFrame(updateFPS);
 }
 
-// Creates and formats content for modal
-async function modalContent( object ) {
+//--------------------------------------------------------------------------------------------------------------------------------------------
 
-    const planetName = object.objectName(); // Get the planet name
+// Creates and formats content for modal
+async function modalContent(object) {
+    const planetName = object.objectName();
     const url = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(planetName)}`;
 
-
     try {
-        // Fetch the Wikipedia summary
         const response = await fetch(url);
-        if (!response.ok) {
-            throw new Error('Network response was not ok');
-        }
+        if (!response.ok) throw new Error('Network response was not ok');
         const data = await response.json();
-
-        // Check if the data contains an extract
-        const modalContent = data.extract ? data.extract : "No summary available.";
-
-        // Set the modal content
-        document.getElementById('modalText').textContent = modalContent;
-        document.querySelector('.modal-content h2').textContent = planetName;
-
-        // Open the modal
-        openModal();
+        const sidebarContent = data.extract ? data.extract : "No summary available.";
+        openSidebar(planetName, sidebarContent);
     } catch (error) {
         console.error('Error fetching Wikipedia content:', error);
-        document.getElementById('modalText').textContent = "Error loading content.";
-        document.querySelector('.modal-content h2').textContent = planetName;
-
-        // Open the modal even if there's an error
-        openModal();
+        openSidebar(planetName, "Error loading content.");
     }
-
 }
 
-// Opens the modal dialog
-function openModal() {
-    document.getElementById('planetInfo').style.display = 'flex';
+function openSidebar(title, content) {
+    document.getElementById('sidebarTitle').textContent = title;
+    document.getElementById('sidebarText').textContent = content;
+    document.getElementById('infoSidebar').classList.add('open');
 }
 
-// Closes the modal dialog
-function closeModal() {
-    document.getElementById('planetInfo').style.display = 'none';
+function closeSidebar() {
+    document.getElementById('infoSidebar').classList.remove('open');
 }
+
+//--------------------------------------------------------------------------------------------------------------------------------------------
 
 // Main animation loop
 function animate() {
     requestAnimationFrame(animate);
     render();
-    stats.update();
+    // stats.update();
 }
+
+//--------------------------------------------------------------------------------------------------------------------------------------------
 
 // Renders the scene and updates objects
 function render() {
@@ -223,6 +290,8 @@ function render() {
     Uranus.planetOrbit();
     UranusRing.planetRingOrbit();
     Neptune.planetOrbit();
+    asteroidBelt.rotateBelt()
+    kuiperBelt.rotateBelt();
 
     if (targetPlanet) {
         try {
@@ -233,7 +302,7 @@ function render() {
             camera.lookAt(scene.position);
         }
     } else {
-        closeModal();
+        closeSidebar();
     }
 
     controls.update();
