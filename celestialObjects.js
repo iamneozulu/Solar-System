@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+import * as THREE from './node_modules/three';
 
 export class Star extends THREE.Mesh{
     constructor(name, size, rotationSpeed, texture){

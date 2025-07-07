@@ -1,8 +1,8 @@
-import * as THREE from 'three';
-import * as CELESTIAL from './celestialObjects';
-import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-import Stats from 'three/examples/jsm/libs/stats.module.js';
+import * as THREE from './node_modules/three';
+import * as CELESTIAL from './celestialObjects.js';
+import { RGBELoader } from './node_modules/three/examples/jsm/loaders/RGBELoader.js';
+import { OrbitControls } from './node_modules/three/examples/jsm/controls/OrbitControls.js';
+import Stats from './node_modules/three/examples/jsm/libs/stats.module.js';
 
 let stats;
 let renderer, scene, camera, controls, raycaster;
@@ -12,7 +12,7 @@ let targetPlanet = null;
 
 const pointer = new THREE.Vector2();
 
-let lastFrameTime = performance.now();
+let lastFrameTime = performance.now(); 
 let frameCount = 0;
 let fps = 0;
 const fpsThreshold = 30; // Minimum FPS threshold for hiding the loading screen
@@ -50,6 +50,7 @@ function init() {
 
     // Space HDRI
     const HDRIloader = new RGBELoader();
+    HDRIloader.setPath('./static/images/');
     HDRIloader.load('./static/images/HDR_hazy_nebulae.hdr', function (texture) {
         texture.mapping = THREE.EquirectangularReflectionMapping;
         scene.background = texture;
@@ -192,12 +193,12 @@ async function modalContent( object ) {
 
 // Opens the modal dialog
 function openModal() {
-    document.getElementById('myModal').style.display = 'flex';
+    document.getElementById('planetInfo').style.display = 'flex';
 }
 
 // Closes the modal dialog
 function closeModal() {
-    document.getElementById('myModal').style.display = 'none';
+    document.getElementById('planetInfo').style.display = 'none';
 }
 
 // Main animation loop

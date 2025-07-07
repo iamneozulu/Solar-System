@@ -3,64 +3,21 @@ body, html {
     margin: 0;
     padding: 0;
     height: 100%; /* Ensures the body takes full height */
+    width: 100%; /* Ensures the body takes full width */
+    font-family: Arial, sans-serif; /* Sets a default font */
+    color: white; /* Default text color */
+    background-color: #0d1d49; /* Light background color */
 }
 
-
-/* Basic styling for the welcome page */
-#welcome-page {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 9999;
-    font-size: 2em;
-    color: white;
-    text-align: center;
-}
-
-#start-button {
-    background-color: rgba(15, 46, 184, 0.2);
-    color: white;
-    border: none;
-    padding: 15px 32px;
-    text-align: center;
-    text-decoration: none;
-    display: inline-block;
-    font-size: 16px;
-    margin: 4px 2px;
-    cursor: pointer;
-    border-radius: 5px;
-    transition: background-color 2s;
-}
-
-#start-button:hover {
-    background-color: rgba(15, 46, 184);
-}
-
-/* Floating button style */
-#floating-button {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    background-color: rgba(15, 46, 184, 0.2);
-    color: rgba(255, 255, 255, 0.2);
-    border: none;
-    padding: 15px;
-    cursor: pointer;
-    font-size: 12px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    z-index: 1000;
-    transition: background-color 2s, color 2s;
-}
-
-#floating-button:hover {
-    color: rgb(255, 255, 255);
-    background-color: rgba(15, 46, 184);
+/* Style for the header */
+header {
+    background-color: #0d1d49; /* Dark background color */
+    color: white; /* White text color */
+    padding: 20px; /* Padding around the header */
+    text-align: center; /* Center the header text */
+    top: 0; /* Align to the top */
+    width: 100%; /* Full width */
+    z-index: 1000; /* Ensure it stays above other content */
 }
 
 /* Style for the modal background */
@@ -71,7 +28,8 @@ body, html {
     left: 1000;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0);
+    color: #0d1d49;
+    background: rgba(0, 0, 0, 0.5);
     justify-content: left;
     align-items: center;
     z-index: 1000;
@@ -88,35 +46,38 @@ body, html {
     position: relative;
 }
 
-/* .modal-content h2 {
-    color: white; White color for the heading
-}
-
-.modal-content p {
-    color: white;  White color for paragraphs 
-}
-
-.modal-content a {
-    color: lightblue;  Example: light blue for links
-} */
-
-/* Basic styling for the loading screen */
-#loading-screen {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: white;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 9999;
-    font-size: 2em;
-    color: black;
-}
 
 /* Basic styling for the main content */
 #main-content {
     display: none; /* Hidden by default */
+}
+
+#loadingScreen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: #0d1d49;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+}
+
+.loader {
+    border: 8px solid #f3f3f3;
+    border-top: 8px solid #0d1d49;
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    animation: spin 1s linear infinite;
+    margin-bottom: 16px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg);}
+    100% { transform: rotate(360deg);}
 }

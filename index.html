@@ -7,63 +7,42 @@
     <link rel="stylesheet" href="./style.css"> <!-- Link to CSS file -->
 </head>
 <body>
-    <!-- Welcome Page -->
-    <div id="welcome-page">
-        <div>
-            <h1>THE SOLAR SYSTEM</h1>
-            <button id="start-button">EXPLORE</button>
-        </div>
+    <!-- Loading Screen -->
+    <div id="loadingScreen">
+        <div class="loader"></div>
+        <p>Loading Solar System...</p>
     </div>
 
     <!-- Modal Structure -->
-    <div id="myModal" class="modal">
+    <div id="planetInfo" class="modal">
         <div class="modal-content">
             <span class="close" onclick="closeModal()">&times;</span>
             <h2>Object Information</h2>
             <p id="modalText">Details about the clicked object will appear here.</p>
-            <!-- You can add more HTML elements as needed -->
         </div>
     </div>
+        <!-- JavaScript -->
+        <script type="module" src="./main.js"></script>
+        <script>
+            // Hide loading screen when page is fully loaded
+            window.addEventListener('load', function() {
+                document.getElementById('loadingScreen').style.display = 'none';
+            });
 
-    <!-- Loading screen -->
-    <div id="loading-screen">Loading...</div>
-
-    <!-- Main content -->
-    <div id="main-content"></div>
-
-    <!-- Floating Button -->
-    <button id="floating-button">Home Page</button>
-
-    <!-- JavaScript -->
-    <script type="module" src="/main.js"></script>
-    <script>
-        // Start button event listener
-        document.getElementById('start-button').addEventListener('click', () => {
-            // Hide the welcome page
-            document.getElementById('welcome-page').style.display = 'none';
-            document.getElementById('main-content').style.display = 'block';
-        });
-
-        // Floating button event listener
-        document.getElementById('floating-button').addEventListener('click', () => {
-            // Hide main content and show the welcome page again
-            document.getElementById('main-content').style.display = 'none';
-            document.getElementById('welcome-page').style.display = 'flex';
-        });
-
-        // Close modal function
-        function closeModal() {
-            document.getElementById('myModal').style.display = 'none';
-        }
-
-        // Close modal when clicking outside of the modal content
-        window.onclick = function(event) {
-            const modal = document.getElementById('myModal');
-            if (event.target === modal) {
-                closeModal();
+            // Function to open modal and display information
+            // Close modal function
+            function closeModal() {
+                document.getElementById('planetInfo').style.display = 'none';
             }
-        };
-    </script>
-    <noscript>Your browser does not support JavaScript.</noscript>
+
+            // Close modal when clicking outside of the modal content
+            window.onclick = function(event) {
+                const modal = document.getElementById('planetInfo');
+                if (event.target === modal) {
+                    closeModal();
+                }
+            };
+        </script>
+        <noscript>Your browser does not support JavaScript.</noscript>
 </body>
 </html>
