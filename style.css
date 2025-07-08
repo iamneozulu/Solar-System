@@ -128,3 +128,23 @@ body, html {
 }
 
 /* ------------------------------------------------------------------------------------------------------------------------------ */
+
+#pauseButton {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 60px;
+    height: 60px;
+    background: #0d1d49;
+    color: #ffd600;
+    opacity: 0.3;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 1000;
+    transition: opacity 0.4s cubic-bezier(.77,0,.18,1);
+}
+
+#pauseButton:hover {
+    opacity: 0.8;
+}

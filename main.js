@@ -12,9 +12,14 @@ let targetPlanet = null;
 
 const pointer = new THREE.Vector2();
 
+let mouseDown = false;
+let mouseMoved = false;
+let mouseDownPos = { x: 0, y: 0 };
+
 let lastFrameTime = performance.now(); 
 let frameCount = 0;
 let fps = 0;
+let isPaused = false;
 
 const loadingManager = new THREE.LoadingManager();
 loadingManager.onLoad = function () {
@@ -163,7 +168,34 @@ function init() {
 
     // Event listeners
     window.addEventListener('resize', onWindowResize);
-    document.addEventListener('click', onClick);
+    //-----------------------------------------------------------------
+    document.addEventListener('mousedown', (event) => {
+    mouseDown = true;
+    mouseMoved = false;
+    mouseDownPos = { x: event.clientX, y: event.clientY };
+    });
+    document.addEventListener('mousemove', (event) => {
+        if (mouseDown) {
+            const dx = event.clientX - mouseDownPos.x;
+            const dy = event.clientY - mouseDownPos.y;
+            if (Math.sqrt(dx*dx + dy*dy) > 5) {
+                mouseMoved = true;
+            }
+        }
+    });
+    document.addEventListener('mouseup', (event) => {
+        mouseDown = false;
+        if (!mouseMoved) {
+            onClick(event);
+        }
+    });
+    //-----------------------------------------------------------------
+    document.getElementById('pauseButton').onclick = function() {
+        isPaused = !isPaused;
+        this.textContent = isPaused ? 'Resume' : 'Pause';
+    };
+    document.getElementById('pauseButton').textContent = 'Pause';
+    //-----------------------------------------------------------------
     document.getElementById('launchBtn').onclick = function() {
         document.getElementById('loadingScreen').style.display = 'none';
     };
@@ -182,7 +214,6 @@ function onClick(event) {
     if (intersects.length > 0) {
         const intersectedObject = intersects[0].object;
 
-        // If orbit path is clicked, select its planet
         if (intersectedObject.userData.isOrbitPath && intersectedObject.userData.planet) {
             targetPlanet = intersectedObject.userData.planet;
             controls.minDistance = 0;
@@ -192,6 +223,7 @@ function onClick(event) {
 
         if (intersectedObject.position) {
             if (intersectedObject === Sun) {
+                targetPlanet = Sun;
                 controls.minDistance = 50;
             } else {
                 targetPlanet = intersectedObject;
@@ -278,28 +310,34 @@ function animate() {
 // Renders the scene and updates objects
 function render() {
     // Orbit and rotation calculations
-    Sun.starRotation();
-    Mercury.planetOrbit();
-    Venus.planetOrbit();
-    Earth.planetOrbit();
-    Lunar.moonOrbit();
-    Mars.planetOrbit();
-    Jupiter.planetOrbit();
-    Saturn.planetOrbit();
-    SaturnRing.planetRingOrbit();
-    Uranus.planetOrbit();
-    UranusRing.planetRingOrbit();
-    Neptune.planetOrbit();
-    asteroidBelt.rotateBelt()
-    kuiperBelt.rotateBelt();
+    if (!isPaused) {
+        Sun.starRotation();
+        Mercury.planetOrbit();
+        Venus.planetOrbit();
+        Earth.planetOrbit();
+        Lunar.moonOrbit();
+        Mars.planetOrbit();
+        Jupiter.planetOrbit();
+        Saturn.planetOrbit();
+        SaturnRing.planetRingOrbit();
+        Uranus.planetOrbit();
+        UranusRing.planetRingOrbit();
+        Neptune.planetOrbit();
+        asteroidBelt.rotateBelt()
+        kuiperBelt.rotateBelt();
+    }
 
     if (targetPlanet) {
-        try {
-            CELESTIAL.cameraOrbit(camera, targetPlanet.hostPlanet());
-            camera.lookAt(scene.position);
-        } catch {
-            CELESTIAL.cameraOrbit(camera, targetPlanet);
-            camera.lookAt(scene.position);
+        if (!isPaused) {
+            try {
+                if (targetPlanet !== Sun) {
+                    CELESTIAL.cameraOrbit(camera, targetPlanet.hostPlanet());
+                    camera.lookAt(scene.position);
+                }
+            } catch {
+                CELESTIAL.cameraOrbit(camera, targetPlanet);
+                camera.lookAt(scene.position);
+            }
         }
     } else {
         closeSidebar();
