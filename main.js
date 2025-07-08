@@ -14,7 +14,7 @@ const pointer = new THREE.Vector2();
 
 let lastFrameTime = performance.now(); 
 let frameCount = 0;
-// let fps = 0;
+let fps = 0;
 
 const loadingManager = new THREE.LoadingManager();
 loadingManager.onLoad = function () {
@@ -88,7 +88,7 @@ function init() {
 
     // Space HDRI
     loadingManager.itemStart('hdri');
-    
+
     const HDRIloader = new RGBELoader();
     HDRIloader.load('./static/images/HDR_hazy_nebulae.hdr', function (texture) {
         texture.mapping = THREE.EquirectangularReflectionMapping;
