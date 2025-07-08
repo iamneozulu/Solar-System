@@ -88,8 +88,8 @@ function init() {
 
     // Space HDRI
     loadingManager.itemStart('hdri');
+    
     const HDRIloader = new RGBELoader();
-    HDRIloader.setPath('./static/images/');
     HDRIloader.load('./static/images/HDR_hazy_nebulae.hdr', function (texture) {
         texture.mapping = THREE.EquirectangularReflectionMapping;
         scene.background = texture;
