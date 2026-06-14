@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import * as CELESTIAL from './celestialObjects.js';
 import { PLANET_DATA } from './planetData.js';
-import { EXRLoader } from 'three/examples/jsm/loaders/EXRLoader.js';
+import { createStarfield } from './starfield.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
 let renderer, scene, camera, controls, raycaster;
@@ -76,12 +76,7 @@ function init() {
 
   scene = new THREE.Scene();
 
-  const HDRIloader = new EXRLoader(loadingManager);
-  HDRIloader.load('./static/images/NightSkyHDRI001_2K_HDR.exr', (texture) => {
-    texture.mapping = THREE.EquirectangularReflectionMapping;
-    scene.background = texture;
-    scene.environment = texture;
-  });
+  createStarfield(scene);
 
   scene.add(Sun);
   scene.add(Mercury);
