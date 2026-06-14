@@ -3,7 +3,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 const mockTexture = { type: 'Texture', image: {} };
 const mockLoader = { load: vi.fn(() => mockTexture) };
 
-vi.mock('../node_modules/three', () => {
+vi.mock('three', () => {
   const THREE = {};
 
   class MockObject3D {
@@ -68,8 +68,8 @@ vi.mock('../node_modules/three', () => {
   return { default: THREE, LineLoop: MockLineLoop, ...THREE };
 });
 
-const THREE = await import('../node_modules/three');
-const CELESTIAL = await import('../celestialObjects.js');
+const THREE = await import('three');
+const CELESTIAL = await import('../src/celestialObjects.js');
 
 describe('Star', () => {
   let star;
@@ -262,7 +262,7 @@ describe('createOrbitPath', () => {
 
 describe('planetData integration', () => {
   it('PLANET_DATA covers all objects', async () => {
-    const PD = await import('../planetData.js');
+    const PD = await import('../src/planetData.js');
     const names = ['Sun', 'Mercury', 'Venus', 'Earth', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune'];
     for (const name of names) {
       expect(PD.PLANET_DATA[name]).toBeDefined();
