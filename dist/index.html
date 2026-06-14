@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Solar System</title>
+  <script type="module" crossorigin src="/assets/index-fQtUX-pI.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-CwXyjwXL.css">
+</head>
+<body>
+  <div id="loadingScreen">
+    <div id="stars"></div>
+    <div class="loader">
+      <div class="ring"></div>
+      <div class="ring-inner"></div>
+      <div class="planet-preview"></div>
+    </div>
+    <h1>THE SOLAR SYSTEM</h1>
+    <p class="subtitle">An interactive 3D exploration</p>
+    <div id="progressContainer">
+      <div id="progressBar"></div>
+    </div>
+    <span id="progressText">Loading...</span>
+    <button id="launchBtn">Explore</button>
+  </div>
+
+  <button id="pauseButton">⏸</button>
+
+  <div id="infoSidebar" class="sidebar">
+    <div class="sidebar-content">
+      <span class="close" onclick="closeSidebar()">&times;</span>
+      <div class="planet-header">
+        <div id="planetColorDot"></div>
+        <h2 id="sidebarTitle">Object Information</h2>
+      </div>
+      <p id="sidebarDescription">Details about the clicked object will appear here.</p>
+      <div id="sidebarDetails"></div>
+      <div id="sidebarFunFact"></div>
+    </div>
+  </div>
+
+  <noscript>Your browser does not support JavaScript.</noscript>
+</body>
+</html>

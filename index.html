@@ -1,38 +1,44 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Solar System</title>
-    <link rel="stylesheet" href="./style.css"> <!-- Link to CSS file -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Solar System</title>
+  <link rel="stylesheet" href="./style.css">
 </head>
 <body>
-    <!-- Loading Screen -->
-    <div id="loadingScreen">
-        <div class="loader">
-            <div class="loader-center"></div>
-            <div class="loader-dot"></div>
-        </div>
-        <h1>The Solar System</h1>
-        <button id="launchBtn">
-            Launch Solar System
-        </button>
+  <div id="loadingScreen">
+    <div id="stars"></div>
+    <div class="loader">
+      <div class="ring"></div>
+      <div class="ring-inner"></div>
+      <div class="planet-preview"></div>
     </div>
-
-    <!-- Pause Button -->
-    <button id="pauseButton"></button>
-
-    <!-- Info Sidebar -->
-    <div id="infoSidebar" class="sidebar">
-        <div class="sidebar-content">
-            <span class="close" onclick="closeSidebar()">&times;</span>
-            <h2 id="sidebarTitle">Object Information</h2>
-            <p id="sidebarText">Details about the clicked object will appear here.</p>
-        </div>
+    <h1>THE SOLAR SYSTEM</h1>
+    <p class="subtitle">An interactive 3D exploration</p>
+    <div id="progressContainer">
+      <div id="progressBar"></div>
     </div>
+    <span id="progressText">Loading...</span>
+    <button id="launchBtn">Explore</button>
+  </div>
 
-        <!-- JavaScript -->
-        <script type="module" src="./main.js"></script>
-        <noscript>Your browser does not support JavaScript.</noscript>
+  <button id="pauseButton">⏸</button>
+
+  <div id="infoSidebar" class="sidebar">
+    <div class="sidebar-content">
+      <span class="close" onclick="closeSidebar()">&times;</span>
+      <div class="planet-header">
+        <div id="planetColorDot"></div>
+        <h2 id="sidebarTitle">Object Information</h2>
+      </div>
+      <p id="sidebarDescription">Details about the clicked object will appear here.</p>
+      <div id="sidebarDetails"></div>
+      <div id="sidebarFunFact"></div>
+    </div>
+  </div>
+
+  <script type="module" src="./main.js"></script>
+  <noscript>Your browser does not support JavaScript.</noscript>
 </body>
 </html>
