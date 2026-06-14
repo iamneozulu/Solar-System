@@ -76,7 +76,6 @@ function init() {
 
   scene = new THREE.Scene();
 
-  loadingManager.itemStart('hdri');
   const HDRIloader = new EXRLoader(loadingManager);
   HDRIloader.load('./static/images/NightSkyHDRI001_2K_HDR.exr', (texture) => {
     texture.mapping = THREE.EquirectangularReflectionMapping;
