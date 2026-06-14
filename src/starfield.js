@@ -17,26 +17,19 @@ function generateBackgroundTexture(width = 2048, height = 1024) {
   canvas.height = height;
   const ctx = canvas.getContext('2d');
 
-  const grad = ctx.createRadialGradient(width / 2, height / 2, 0, width / 2, height / 2, width * 0.6);
-  grad.addColorStop(0, '#0b0f2a');
-  grad.addColorStop(0.2, '#070a1f');
-  grad.addColorStop(0.5, '#040614');
-  grad.addColorStop(1, '#010208');
-  ctx.fillStyle = grad;
+  ctx.fillStyle = '#000';
   ctx.fillRect(0, 0, width, height);
 
   const nebulaColors = [
-    { r: 0.6, g: 0.2, b: 0.8, a: 0.04 },
-    { r: 0.2, g: 0.3, b: 0.9, a: 0.03 },
-    { r: 0.8, g: 0.3, b: 0.2, a: 0.025 },
-    { r: 0.1, g: 0.6, b: 0.7, a: 0.03 },
-    { r: 0.9, g: 0.5, b: 0.1, a: 0.02 },
+    { r: 0.4, g: 0.1, b: 0.6, a: 0.008 },
+    { r: 0.1, g: 0.15, b: 0.5, a: 0.005 },
+    { r: 0.5, g: 0.1, b: 0.05, a: 0.004 },
   ];
 
   for (const nebula of nebulaColors) {
     const cx = Math.random() * width;
     const cy = Math.random() * height;
-    const r = 150 + Math.random() * 350;
+    const r = 200 + Math.random() * 400;
     const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
     g.addColorStop(0, `rgba(${nebula.r * 255},${nebula.g * 255},${nebula.b * 255},${nebula.a})`);
     g.addColorStop(1, 'rgba(0,0,0,0)');

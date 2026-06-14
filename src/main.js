@@ -10,6 +10,8 @@ let simulationTime = 0;
 let lastFrameTime = performance.now();
 let isPaused = false;
 
+let zoomTween = null;
+
 const pointer = new THREE.Vector2();
 let mouseDown = false;
 let mouseMoved = false;
@@ -38,26 +40,27 @@ const Lunar = new CELESTIAL.Moon(Earth, "Lunar", 1, 4, (2420000 / 136.61), 0.05,
 const Mars = new CELESTIAL.Planet("Mars", 1.5, 207940000, (1440000000 / 9.4), 0.05, 25, PLANET_DATA.Mars.color, "./static/images/mars.jpg", textureLoader);
 const Jupiter = new CELESTIAL.Planet("Jupiter", 7, 749370000 / 2, (4770000000 / 60), 0.05, 3.13, PLANET_DATA.Jupiter.color, "./static/images/jupiter.jpg", textureLoader);
 const Saturn = new CELESTIAL.Planet("Saturn", 6.5, 1450400000 / 2, (9120000000 / 147), 0.05, 26.73, PLANET_DATA.Saturn.color, "./static/images/saturn.jpg", textureLoader);
-const SaturnRing = new CELESTIAL.PlanetRing(Saturn, 1, 5);
+const SaturnRingTexture = CELESTIAL.generateRingTexture();
+const SaturnRing = new CELESTIAL.PlanetRing(Saturn, 1, 5, SaturnRingTexture);
 const Uranus = new CELESTIAL.Planet("Uranus", 5, 2930100000 / 3, (18400000000 / 420), 0.05, 97.77, PLANET_DATA.Uranus.color, "./static/images/uranus.jpg", textureLoader);
 const UranusRing = new CELESTIAL.PlanetRing(Uranus, 3, 4);
 const Neptune = new CELESTIAL.Planet("Neptune", 5, 4472100000 / 3.5, (28100000000 / 825), 0.05, 28, PLANET_DATA.Neptune.color, "./static/images/neptune.jpg", textureLoader);
 
-const MercuryOrbitPath = CELESTIAL.createOrbitPath(Mercury.orbitRadius);
+const MercuryOrbitPath = CELESTIAL.createOrbitPath(Mercury.orbitRadius, PLANET_DATA.Mercury.color);
 MercuryOrbitPath.userData.planet = Mercury;
-const VenusOrbitPath = CELESTIAL.createOrbitPath(Venus.orbitRadius);
+const VenusOrbitPath = CELESTIAL.createOrbitPath(Venus.orbitRadius, PLANET_DATA.Venus.color);
 VenusOrbitPath.userData.planet = Venus;
-const EarthOrbitPath = CELESTIAL.createOrbitPath(Earth.orbitRadius);
+const EarthOrbitPath = CELESTIAL.createOrbitPath(Earth.orbitRadius, PLANET_DATA.Earth.color);
 EarthOrbitPath.userData.planet = Earth;
-const MarsOrbitPath = CELESTIAL.createOrbitPath(Mars.orbitRadius);
+const MarsOrbitPath = CELESTIAL.createOrbitPath(Mars.orbitRadius, PLANET_DATA.Mars.color);
 MarsOrbitPath.userData.planet = Mars;
-const JupiterOrbitPath = CELESTIAL.createOrbitPath(Jupiter.orbitRadius);
+const JupiterOrbitPath = CELESTIAL.createOrbitPath(Jupiter.orbitRadius, PLANET_DATA.Jupiter.color);
 JupiterOrbitPath.userData.planet = Jupiter;
-const SaturnOrbitPath = CELESTIAL.createOrbitPath(Saturn.orbitRadius);
+const SaturnOrbitPath = CELESTIAL.createOrbitPath(Saturn.orbitRadius, PLANET_DATA.Saturn.color);
 SaturnOrbitPath.userData.planet = Saturn;
-const UranusOrbitPath = CELESTIAL.createOrbitPath(Uranus.orbitRadius);
+const UranusOrbitPath = CELESTIAL.createOrbitPath(Uranus.orbitRadius, PLANET_DATA.Uranus.color);
 UranusOrbitPath.userData.planet = Uranus;
-const NeptuneOrbitPath = CELESTIAL.createOrbitPath(Neptune.orbitRadius);
+const NeptuneOrbitPath = CELESTIAL.createOrbitPath(Neptune.orbitRadius, PLANET_DATA.Neptune.color);
 NeptuneOrbitPath.userData.planet = Neptune;
 
 const asteroidBelt = new CELESTIAL.AsteroidBelt(1500, 90, 110, 0xb2b2b2, 0.5);
@@ -149,21 +152,38 @@ function onClick(event) {
   if (intersects.length > 0) {
     const obj = intersects[0].object;
     if (obj.userData.isOrbitPath && obj.userData.planet) {
-      targetPlanet = obj.userData.planet;
-      controls.minDistance = 0;
-      showPlanetInfo(targetPlanet);
+      startZoomTo(obj.userData.planet);
       return;
     }
     if (obj.position) {
-      targetPlanet = obj;
-      controls.minDistance = obj === Sun ? 50 : 0;
-      showPlanetInfo(obj);
+      startZoomTo(obj);
     }
   } else {
     targetPlanet = null;
+    zoomTween = null;
     controls.minDistance = 50;
     closeSidebar();
   }
+}
+
+function startZoomTo(obj) {
+  targetPlanet = obj;
+  controls.minDistance = obj === Sun ? 50 : 0;
+  showPlanetInfo(obj);
+
+  const host = obj.isMoon ? obj.planet : obj;
+  const orbitOffset = obj === Sun ? 60 : host.orbitRadius + 15;
+  const targetPos = new THREE.Vector3();
+  targetPos.x = orbitOffset * Math.cos(-host.orbitSpeed * simulationTime * 1000);
+  targetPos.z = orbitOffset * Math.sin(-host.orbitSpeed * simulationTime * 1000);
+  targetPos.y = host.position.y + (obj === Sun ? 0 : 3);
+
+  zoomTween = {
+    startPos: camera.position.clone(),
+    startTarget: controls.target.clone(),
+    progress: 0,
+    duration: 0.8,
+  };
 }
 
 function onWindowResize() {
@@ -200,6 +220,10 @@ function closeSidebar() {
   document.getElementById('infoSidebar').classList.remove('open');
 }
 
+function easeOutCubic(t) {
+  return 1 - Math.pow(1 - t, 3);
+}
+
 function animate() {
   requestAnimationFrame(animate);
   const now = performance.now();
@@ -216,13 +240,36 @@ function animate() {
     asteroidBelt.update(deltaTime);
     kuiperBelt.update(deltaTime);
 
-    if (targetPlanet && targetPlanet !== Sun) {
-      if (targetPlanet.isMoon()) {
-        CELESTIAL.cameraOrbit(camera, targetPlanet.planet, simulationTime);
+    const follow = targetPlanet && targetPlanet !== Sun;
+    if (follow) {
+      const host = targetPlanet.isMoon() ? targetPlanet.planet : targetPlanet;
+      const orbitOffset = host.orbitRadius + 15;
+      const orbitX = orbitOffset * Math.cos(-host.orbitSpeed * simulationTime * 1000);
+      const orbitZ = orbitOffset * Math.sin(-host.orbitSpeed * simulationTime * 1000);
+      const orbitY = host.position.y + 3;
+
+      if (zoomTween) {
+        zoomTween.progress += deltaTime / zoomTween.duration;
+        const t = easeOutCubic(Math.min(zoomTween.progress, 1));
+
+        camera.position.lerpVectors(
+          zoomTween.startPos,
+          new THREE.Vector3(orbitX, orbitY, orbitZ),
+          t
+        );
+        controls.target.lerpVectors(
+          zoomTween.startTarget,
+          new THREE.Vector3(host.position.x, host.position.y, host.position.z),
+          t
+        );
+
+        if (zoomTween.progress >= 1) zoomTween = null;
       } else {
-        CELESTIAL.cameraOrbit(camera, targetPlanet, simulationTime);
+        camera.position.x = orbitX;
+        camera.position.z = orbitZ;
+        camera.position.y = orbitY;
+        controls.target.set(host.position.x, host.position.y, host.position.z);
       }
-      camera.lookAt(scene.position);
     }
   }
 

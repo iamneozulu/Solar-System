@@ -73,9 +73,15 @@ export class Moon extends THREE.Mesh {
 }
 
 export class PlanetRing extends THREE.Mesh {
-  constructor(planet, innerRadius, outerRadius) {
-    const geometry = new THREE.RingGeometry(planet.size + innerRadius, planet.size + outerRadius, 24);
-    const material = new THREE.MeshBasicMaterial({ color: 'lightgray', side: THREE.DoubleSide });
+  constructor(planet, innerRadius, outerRadius, texture) {
+    const geometry = new THREE.RingGeometry(planet.size + innerRadius, planet.size + outerRadius, 64);
+    const materialOptions = { side: THREE.DoubleSide, transparent: true };
+    if (texture) {
+      materialOptions.map = texture;
+    } else {
+      materialOptions.color = 'lightgray';
+    }
+    const material = new THREE.MeshBasicMaterial(materialOptions);
     super(geometry, material);
     this.planet = planet;
   }
@@ -85,6 +91,65 @@ export class PlanetRing extends THREE.Mesh {
     this.position.z = this.planet.position.z;
     this.rotation.x = THREE.MathUtils.degToRad(this.planet.axisTilt + 270);
   }
+}
+
+export function generateRingTexture() {
+  const canvas = document.createElement('canvas');
+  canvas.width = 8;
+  canvas.height = 512;
+  const ctx = canvas.getContext('2d');
+
+  const imageData = ctx.createImageData(8, 512);
+  const data = imageData.data;
+
+  for (let y = 0; y < 512; y++) {
+    const t = y / 512;
+    let brightness = 0;
+
+    if (t < 0.03) {
+      brightness = 0;
+    } else if (t < 0.08) {
+      brightness = 0.15 + 0.1 * Math.sin(t * 200);
+    } else if (t < 0.12) {
+      brightness = 0.05;
+    } else if (t < 0.35) {
+      brightness = 0.5 + 0.25 * Math.sin(t * 80);
+    } else if (t < 0.38) {
+      const gap = (t - 0.35) / 0.03;
+      brightness = 0.6 * (1 - gap);
+    } else if (t < 0.68) {
+      brightness = 0.7 + 0.25 * Math.sin(t * 120 + 0.5);
+    } else if (t < 0.72) {
+      brightness = 0.05 + 0.1 * Math.sin(t * 300);
+    } else if (t < 0.93) {
+      brightness = 0.4 + 0.3 * Math.sin(t * 90 + 1);
+      const fade = 1 - (t - 0.93) / 0.07;
+      brightness *= Math.max(0, fade);
+    } else {
+      brightness = 0;
+    }
+
+    const warm = Math.min(1, 0.8 + brightness * 0.3);
+    const r = Math.min(255, Math.round(200 + brightness * 55 * warm));
+    const g = Math.min(255, Math.round(180 + brightness * 75 * warm * 0.9));
+    const b = Math.min(255, Math.round(150 + brightness * 105 * 0.7));
+
+    for (let x = 0; x < 8; x++) {
+      const idx = (y * 8 + x) * 4;
+      data[idx] = r;
+      data[idx + 1] = g;
+      data[idx + 2] = b;
+      data[idx + 3] = Math.min(255, Math.round(brightness * 255));
+    }
+  }
+
+  ctx.putImageData(imageData, 0, 0);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.wrapS = THREE.RepeatWrapping;
+  texture.wrapT = THREE.ClampToEdgeWrapping;
+  texture.repeat.set(1, 1);
+  return texture;
 }
 
 export class AsteroidBelt extends THREE.Points {
@@ -117,11 +182,11 @@ export function cameraOrbit(camera, planet, simTime) {
   camera.position.y = planet.position.y + 3;
 }
 
-export function createOrbitPath(orbitRadius, color = 0x444466) {
+export function createOrbitPath(orbitRadius, color = '#444466') {
   const curve = new THREE.EllipseCurve(0, 0, orbitRadius, orbitRadius);
   const points = curve.getPoints(100);
   const geometry = new THREE.BufferGeometry().setFromPoints(points);
-  const material = new THREE.LineBasicMaterial({ color, opacity: 0.3, transparent: true });
+  const material = new THREE.LineBasicMaterial({ color: new THREE.Color(color), opacity: 0.25, transparent: true });
   const ellipse = new THREE.LineLoop(geometry, material);
   ellipse.userData.isOrbitPath = true;
   ellipse.rotation.x = Math.PI / 2;

@@ -64,6 +64,13 @@ vi.mock('three', () => {
   THREE.LinearMipmapLinearFilter = Symbol('LinearMipmapLinearFilter');
   THREE.MathUtils = { degToRad: (d) => d * Math.PI / 180 };
   THREE.TextureLoader = function() { return mockLoader; };
+  THREE.Color = function(hex) { return { hex }; };
+  THREE.Vector3 = class { constructor(x, y, z) { this.x = x || 0; this.y = y || 0; this.z = z || 0; } set(x, y, z) { this.x = x; this.y = y; this.z = z; } lerpVectors(a, b, t) { this.x = a.x + (b.x - a.x) * t; this.y = a.y + (b.y - a.y) * t; this.z = a.z + (b.z - a.z) * t; } clone() { return new THREE.Vector3(this.x, this.y, this.z); } };
+  THREE.RepeatWrapping = Symbol('RepeatWrapping');
+  THREE.ClampToEdgeWrapping = Symbol('ClampToEdgeWrapping');
+  THREE.SRGBColorSpace = Symbol('SRGBColorSpace');
+  THREE.AdditiveBlending = Symbol('AdditiveBlending');
+  THREE.CanvasTexture = function(c) { return { image: c, colorSpace: null, wrapS: null, wrapT: null, repeat: { set: () => {} } }; };
 
   return { default: THREE, LineLoop: MockLineLoop, ...THREE };
 });
