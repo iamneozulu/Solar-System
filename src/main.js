@@ -2,15 +2,20 @@ import * as THREE from 'three';
 import * as CELESTIAL from './celestialObjects.js';
 import { PLANET_DATA } from './planetData.js';
 import { createStarfield } from './starfield.js';
+import { DetailScene } from './detailScene.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
-let renderer, scene, camera, controls, raycaster;
-let targetPlanet = null;
+let renderer, scene, camera, detailCamera, controls, detailControls, raycaster;
 let simulationTime = 0;
 let lastFrameTime = performance.now();
 let isPaused = false;
 
-let zoomTween = null;
+let detailScene = null;
+let detailPlanet = null;
+let detailActive = false;
+let transition = null;
+let returnPos = null;
+let returnTarget = null;
 
 const pointer = new THREE.Vector2();
 let mouseDown = false;
@@ -107,12 +112,22 @@ function init() {
   camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 5000);
   camera.position.set(170, 20, 2);
 
+  detailCamera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 6000);
+
   controls = new OrbitControls(camera, renderer.domElement);
   controls.mouseButtons = { LEFT: THREE.MOUSE.ROTATE, MIDDLE: THREE.MOUSE.DOLLY };
   controls.minDistance = 50;
   controls.maxDistance = 1000;
   controls.maxPolarAngle = THREE.MathUtils.degToRad(90);
   controls.panSpeed = 1;
+
+  detailControls = new OrbitControls(detailCamera, renderer.domElement);
+  detailControls.enabled = false;
+  detailControls.mouseButtons = { LEFT: THREE.MOUSE.ROTATE, MIDDLE: THREE.MOUSE.DOLLY };
+  detailControls.minDistance = 1;
+  detailControls.maxDistance = 500;
+  detailControls.maxPolarAngle = Math.PI;
+  detailControls.panSpeed = 1;
 
   raycaster = new THREE.Raycaster();
 
@@ -133,6 +148,9 @@ function init() {
     mouseDown = false;
     if (!mouseMoved) onClick(event);
   });
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') exitDetail();
+  });
   document.getElementById('pauseButton').onclick = () => {
     isPaused = !isPaused;
     document.getElementById('pauseButton').textContent = isPaused ? '▶' : '⏸';
@@ -140,9 +158,13 @@ function init() {
   document.getElementById('launchBtn').onclick = () => {
     document.getElementById('loadingScreen').style.display = 'none';
   };
+  document.getElementById('backButton').onclick = () => exitDetail();
+  document.getElementById('detailClose').onclick = () => exitDetail();
 }
 
 function onClick(event) {
+  if (detailActive || transition) return;
+
   pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
   pointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
 
@@ -152,58 +174,95 @@ function onClick(event) {
   if (intersects.length > 0) {
     const obj = intersects[0].object;
     if (obj.userData.isOrbitPath && obj.userData.planet) {
-      startZoomTo(obj.userData.planet);
+      openDetail(obj.userData.planet);
       return;
     }
-    if (obj.position) {
-      startZoomTo(obj);
-    }
-  } else {
-    targetPlanet = null;
-    zoomTween = null;
-    controls.minDistance = 50;
-    closeSidebar();
+    openDetail(obj);
   }
 }
 
-function startZoomTo(obj) {
-  targetPlanet = obj;
-  controls.minDistance = obj === Sun ? 50 : 0;
-  showPlanetInfo(obj);
+function openDetail(obj) {
+  if (!obj || !obj.position) return;
+  const isMoon = typeof obj.isMoon === 'function' && obj.isMoon();
+  const host = isMoon ? obj.planet : obj;
+  if (detailPlanet === host || transition) return;
 
-  const host = obj.isMoon ? obj.planet : obj;
-  const orbitOffset = obj === Sun ? 60 : host.orbitRadius + 15;
-  const targetPos = new THREE.Vector3();
-  targetPos.x = orbitOffset * Math.cos(-host.orbitSpeed * simulationTime * 1000);
-  targetPos.z = orbitOffset * Math.sin(-host.orbitSpeed * simulationTime * 1000);
-  targetPos.y = host.position.y + (obj === Sun ? 0 : 3);
+  detailPlanet = host;
+  returnPos = camera.position.clone();
+  returnTarget = controls.target.clone();
 
-  zoomTween = {
+  const hostForSolar = host === Sun ? Sun : host;
+  const dist = host === Sun ? host.size * 2.5 : host.size * 4.5 + 5;
+
+  transition = {
+    phase: 'zoom',
+    progress: 0,
+    duration: 0.7,
     startPos: camera.position.clone(),
     startTarget: controls.target.clone(),
-    progress: 0,
-    duration: 0.8,
+    host: hostForSolar,
+    dist,
   };
 }
 
-function onWindowResize() {
-  camera.aspect = window.innerWidth / window.innerHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth, window.innerHeight);
+function enterDetail() {
+  detailActive = true;
+  if (!detailScene || detailScene.name !== detailPlanet.name) {
+    detailScene = new DetailScene(detailPlanet, textureLoader);
+  }
+
+  const d = detailScene.frameRadius;
+  detailCamera.position.set(d * 0.5, d * 0.45, d * 1.1);
+  detailCamera.lookAt(0, 0, 0);
+  detailCamera.updateProjectionMatrix();
+
+  controls.enabled = false;
+  detailControls.enabled = true;
+  detailControls.target.set(0, 0, 0);
+  detailControls.minDistance = detailPlanet.size * 1.2;
+  detailControls.maxDistance = detailScene.frameRadius * 4;
+  detailControls.update();
+
+  populateDetailInfo(detailPlanet);
+  document.getElementById('detailPanel').classList.add('open');
+  document.getElementById('detailView').classList.remove('hidden');
 }
 
-function showPlanetInfo(object) {
+function leaveDetail() {
+  detailActive = false;
+  detailScene = null;
+  detailPlanet = null;
+
+  detailControls.enabled = false;
+  controls.enabled = true;
+  if (returnPos) camera.position.copy(returnPos);
+  if (returnTarget) controls.target.copy(returnTarget);
+  controls.minDistance = 50;
+  controls.maxDistance = 1000;
+  controls.maxPolarAngle = THREE.MathUtils.degToRad(90);
+  controls.update();
+
+  document.getElementById('detailPanel').classList.remove('open');
+  document.getElementById('detailView').classList.add('hidden');
+}
+
+function exitDetail() {
+  if (!detailActive || transition) return;
+  transition = { phase: 'cover', progress: 0, duration: 0.18 };
+}
+
+function populateDetailInfo(object) {
   const name = object.name;
   const data = PLANET_DATA[name];
   if (!data) return;
 
-  document.getElementById('sidebarTitle').textContent = name;
-  document.getElementById('sidebarDescription').textContent = data.description;
-  document.getElementById('planetColorDot').style.background = data.color;
-  document.getElementById('infoSidebar').style.borderColor = data.color;
-  document.getElementById('sidebarTitle').style.color = data.color;
+  document.getElementById('detailTitle').textContent = name;
+  document.getElementById('detailDescription').textContent = data.description;
+  document.getElementById('detailColorDot').style.background = data.color;
+  document.getElementById('detailPanel').style.borderColor = data.color;
+  document.getElementById('detailTitle').style.color = data.color;
 
-  const detailsEl = document.getElementById('sidebarDetails');
+  const detailsEl = document.getElementById('detailDetails');
   detailsEl.innerHTML = '';
   for (const [label, value] of Object.entries(data.details)) {
     const row = document.createElement('div');
@@ -212,16 +271,64 @@ function showPlanetInfo(object) {
     detailsEl.appendChild(row);
   }
 
-  document.getElementById('sidebarFunFact').textContent = '💡 ' + data.funFact;
-  document.getElementById('infoSidebar').classList.add('open');
+  document.getElementById('detailFunFact').textContent = '💡 ' + data.funFact;
 }
 
-function closeSidebar() {
-  document.getElementById('infoSidebar').classList.remove('open');
+function onWindowResize() {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  detailCamera.aspect = window.innerWidth / window.innerHeight;
+  detailCamera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
 }
 
 function easeOutCubic(t) {
   return 1 - Math.pow(1 - t, 3);
+}
+
+function updateTransition(deltaTime) {
+  if (!transition) return;
+  transition.progress += deltaTime / transition.duration;
+  const t = easeOutCubic(Math.min(transition.progress, 1));
+  const fadeEl = document.getElementById('detailFade');
+
+  if (transition.phase === 'zoom') {
+    const offset = new THREE.Vector3();
+    offset.set(
+      transition.host.position.x,
+      transition.host.position.y + transition.dist * 0.4,
+      transition.host.position.z + transition.dist
+    );
+    camera.position.lerpVectors(transition.startPos, offset, t);
+    controls.target.lerpVectors(
+      transition.startTarget,
+      new THREE.Vector3(transition.host.position.x, transition.host.position.y, transition.host.position.z),
+      t
+    );
+    camera.lookAt(
+      transition.host.position.x,
+      transition.host.position.y,
+      transition.host.position.z
+    );
+    if (transition.progress >= 1) {
+      fadeEl.style.opacity = 1;
+      enterDetail();
+      transition = { phase: 'uncover', progress: 0, duration: 0.5 };
+    }
+  } else if (transition.phase === 'cover') {
+    fadeEl.style.opacity = String(t);
+    if (transition.progress >= 1) {
+      fadeEl.style.opacity = 1;
+      leaveDetail();
+      transition = { phase: 'uncover', progress: 0, duration: 0.5 };
+    }
+  } else if (transition.phase === 'uncover') {
+    fadeEl.style.opacity = String(1 - t);
+    if (transition.progress >= 1) {
+      fadeEl.style.opacity = 0;
+      transition = null;
+    }
+  }
 }
 
 function animate() {
@@ -239,40 +346,16 @@ function animate() {
     UranusRing.update();
     asteroidBelt.update(deltaTime);
     kuiperBelt.update(deltaTime);
-
-    const follow = targetPlanet && targetPlanet !== Sun;
-    if (follow) {
-      const host = targetPlanet.isMoon() ? targetPlanet.planet : targetPlanet;
-      const orbitOffset = host.orbitRadius + 15;
-      const orbitX = orbitOffset * Math.cos(-host.orbitSpeed * simulationTime * 1000);
-      const orbitZ = orbitOffset * Math.sin(-host.orbitSpeed * simulationTime * 1000);
-      const orbitY = host.position.y + 3;
-
-      if (zoomTween) {
-        zoomTween.progress += deltaTime / zoomTween.duration;
-        const t = easeOutCubic(Math.min(zoomTween.progress, 1));
-
-        camera.position.lerpVectors(
-          zoomTween.startPos,
-          new THREE.Vector3(orbitX, orbitY, orbitZ),
-          t
-        );
-        controls.target.lerpVectors(
-          zoomTween.startTarget,
-          new THREE.Vector3(host.position.x, host.position.y, host.position.z),
-          t
-        );
-
-        if (zoomTween.progress >= 1) zoomTween = null;
-      } else {
-        camera.position.x = orbitX;
-        camera.position.z = orbitZ;
-        camera.position.y = orbitY;
-        controls.target.set(host.position.x, host.position.y, host.position.z);
-      }
-    }
+    if (detailActive) detailScene.update(deltaTime);
   }
 
-  controls.update();
-  renderer.render(scene, camera);
+  updateTransition(deltaTime);
+
+  if (detailActive) {
+    detailControls.update();
+    renderer.render(detailScene.scene, detailCamera);
+  } else {
+    controls.update();
+    renderer.render(scene, camera);
+  }
 }

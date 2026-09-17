@@ -75,6 +75,7 @@ export class Moon extends THREE.Mesh {
 export class PlanetRing extends THREE.Mesh {
   constructor(planet, innerRadius, outerRadius, texture) {
     const geometry = new THREE.RingGeometry(planet.size + innerRadius, planet.size + outerRadius, 64);
+    mapRingUVs(geometry);
     const materialOptions = { side: THREE.DoubleSide, transparent: true };
     if (texture) {
       materialOptions.map = texture;
@@ -94,52 +95,32 @@ export class PlanetRing extends THREE.Mesh {
 }
 
 export function generateRingTexture() {
+  const W = 16;
+  const H = 512;
   const canvas = document.createElement('canvas');
-  canvas.width = 8;
-  canvas.height = 512;
+  canvas.width = W;
+  canvas.height = H;
   const ctx = canvas.getContext('2d');
 
-  const imageData = ctx.createImageData(8, 512);
+  const imageData = ctx.createImageData(W, H);
   const data = imageData.data;
 
-  for (let y = 0; y < 512; y++) {
-    const t = y / 512;
-    let brightness = 0;
+  for (let y = 0; y < H; y++) {
+    const t = y / H;
+    const brightness = ringBrightness(t);
 
-    if (t < 0.03) {
-      brightness = 0;
-    } else if (t < 0.08) {
-      brightness = 0.15 + 0.1 * Math.sin(t * 200);
-    } else if (t < 0.12) {
-      brightness = 0.05;
-    } else if (t < 0.35) {
-      brightness = 0.5 + 0.25 * Math.sin(t * 80);
-    } else if (t < 0.38) {
-      const gap = (t - 0.35) / 0.03;
-      brightness = 0.6 * (1 - gap);
-    } else if (t < 0.68) {
-      brightness = 0.7 + 0.25 * Math.sin(t * 120 + 0.5);
-    } else if (t < 0.72) {
-      brightness = 0.05 + 0.1 * Math.sin(t * 300);
-    } else if (t < 0.93) {
-      brightness = 0.4 + 0.3 * Math.sin(t * 90 + 1);
-      const fade = 1 - (t - 0.93) / 0.07;
-      brightness *= Math.max(0, fade);
-    } else {
-      brightness = 0;
-    }
+    const ir = Math.min(255, Math.round(210 + brightness * 50));
+    const ig = Math.min(255, Math.round(185 + brightness * 55));
+    const ib = Math.min(255, Math.round(150 + brightness * 70));
+    const alpha = Math.min(255, Math.round(brightness * 255));
 
-    const warm = Math.min(1, 0.8 + brightness * 0.3);
-    const r = Math.min(255, Math.round(200 + brightness * 55 * warm));
-    const g = Math.min(255, Math.round(180 + brightness * 75 * warm * 0.9));
-    const b = Math.min(255, Math.round(150 + brightness * 105 * 0.7));
-
-    for (let x = 0; x < 8; x++) {
-      const idx = (y * 8 + x) * 4;
-      data[idx] = r;
-      data[idx + 1] = g;
-      data[idx + 2] = b;
-      data[idx + 3] = Math.min(255, Math.round(brightness * 255));
+    for (let x = 0; x < W; x++) {
+      const jitter = 0.88 + Math.random() * 0.24;
+      const idx = (y * W + x) * 4;
+      data[idx] = Math.min(255, Math.round(ir * jitter));
+      data[idx + 1] = Math.min(255, Math.round(ig * jitter));
+      data[idx + 2] = Math.min(255, Math.round(ib * jitter));
+      data[idx + 3] = alpha;
     }
   }
 
@@ -150,6 +131,38 @@ export function generateRingTexture() {
   texture.wrapT = THREE.ClampToEdgeWrapping;
   texture.repeat.set(1, 1);
   return texture;
+}
+
+function ringBrightness(t) {
+  if (t < 0.02) return 0;
+  if (t < 0.1) return 0.35 + 0.2 * Math.sin(t * 130);
+  if (t < 0.16) return 0.85 + 0.15 * Math.sin(t * 70);
+  if (t < 0.2) return Math.max(0, 0.85 - (t - 0.16) / 0.04 * 0.7);
+  if (t < 0.235) return 0.08;
+  if (t < 0.34) return 0.55 + 0.3 * Math.sin(t * 60 + 0.5);
+  if (t < 0.5) return 0.82 + 0.18 * Math.sin(t * 90);
+  return Math.max(0, 0.7 * (1 - (t - 0.5) / 0.22));
+}
+
+function mapRingUVs(geometry) {
+  const position = geometry.attributes && geometry.attributes.position;
+  const uv = geometry.attributes && geometry.attributes.uv;
+  if (!position || !uv) return;
+
+  const params = geometry.parameters || {};
+  const inner = params.innerRadius || 1;
+  const outer = params.outerRadius || 4;
+  const positions = position.array;
+  const uvs = uv.array;
+
+  for (let i = 0; i < position.count; i++) {
+    const x = positions[i * 3];
+    const y = positions[i * 3 + 1];
+    const r = Math.sqrt(x * x + y * y);
+    uvs[i * 2] = (Math.atan2(y, x) / (2 * Math.PI) + 0.5);
+    uvs[i * 2 + 1] = (r - inner) / (outer - inner);
+  }
+  uv.needsUpdate = true;
 }
 
 export class AsteroidBelt extends THREE.Points {
@@ -182,13 +195,18 @@ export function cameraOrbit(camera, planet, simTime) {
   camera.position.y = planet.position.y + 3;
 }
 
-export function createOrbitPath(orbitRadius, color = '#444466') {
-  const curve = new THREE.EllipseCurve(0, 0, orbitRadius, orbitRadius);
-  const points = curve.getPoints(100);
-  const geometry = new THREE.BufferGeometry().setFromPoints(points);
-  const material = new THREE.LineBasicMaterial({ color: new THREE.Color(color), opacity: 0.25, transparent: true });
-  const ellipse = new THREE.LineLoop(geometry, material);
-  ellipse.userData.isOrbitPath = true;
-  ellipse.rotation.x = Math.PI / 2;
-  return ellipse;
+export function createOrbitPath(orbitRadius, color = '#444466', thickness = null) {
+  const segments = 128;
+  const points = [];
+  for (let i = 0; i < segments; i++) {
+    const theta = (i / segments) * Math.PI * 2;
+    points.push(new THREE.Vector3(orbitRadius * Math.cos(theta), 0, orbitRadius * Math.sin(theta)));
+  }
+  const curve = new THREE.CatmullRomCurve3(points, true);
+  const tubeRadius = thickness ?? Math.max(0.4, orbitRadius * 0.004);
+  const geometry = new THREE.TubeGeometry(curve, segments, tubeRadius, 8, true);
+  const material = new THREE.MeshBasicMaterial({ color: new THREE.Color(color), opacity: 0.55, transparent: true });
+  const orbitPath = new THREE.Mesh(geometry, material);
+  orbitPath.userData.isOrbitPath = true;
+  return orbitPath;
 }

@@ -60,6 +60,13 @@ vi.mock('three', () => {
   THREE.EllipseCurve = function(a, b, c, d) {
     return { getPoints: vi.fn(() => [{ x: 0, y: 0 }, { x: 1, y: 0 }]) };
   };
+  THREE.CatmullRomCurve3 = function(points) { return { points }; };
+  THREE.TubeGeometry = function(...args) { return { type: 'TubeGeometry', args }; };
+  THREE.Vector3 = class {
+    constructor(x, y, z) { this.x = x || 0; this.y = y || 0; this.z = z || 0; }
+    set(x, y, z) { this.x = x; this.y = y; this.z = z; }
+    clone() { return new THREE.Vector3(this.x, this.y, this.z); }
+  };
   THREE.DoubleSide = Symbol('DoubleSide');
   THREE.LinearMipmapLinearFilter = Symbol('LinearMipmapLinearFilter');
   THREE.MathUtils = { degToRad: (d) => d * Math.PI / 180 };
@@ -259,11 +266,12 @@ describe('cameraOrbit', () => {
 });
 
 describe('createOrbitPath', () => {
-  it('returns a line loop with orbitPath userData', () => {
+  it('returns a mesh orbit path with orbitPath userData', () => {
     const path = CELESTIAL.createOrbitPath(100, 0x444466);
-    expect(path.type).toBe('LineLoop');
+    expect(path.type).toBe('Mesh');
     expect(path.userData.isOrbitPath).toBe(true);
-    expect(path.rotation.x).toBe(Math.PI / 2);
+    expect(path.rotation.x).toBe(0);
+    expect(path.geometry.type).toBe('TubeGeometry');
   });
 });
 

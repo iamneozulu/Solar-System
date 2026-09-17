@@ -176,53 +176,35 @@ html, body {
   transform: scale(0.97);
 }
 
-.sidebar {
+#detailView {
   position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1500;
+}
+
+#detailView.hidden {
+  display: none;
+}
+
+.detail-info {
+  position: absolute;
   top: 0;
-  left: 0;
+  right: 0;
   width: 380px;
   height: 100vh;
-  background: rgba(5, 8, 30, 0.97);
+  background: rgba(5, 8, 30, 0.85);
   color: #fff;
-  z-index: 3000;
-  transform: translateX(-100%);
-  transition: transform 0.4s cubic-bezier(0.77, 0, 0.18, 1);
-  box-shadow: 2px 0 24px rgba(0, 0, 0, 0.5);
-  display: flex;
-  flex-direction: column;
-  pointer-events: none;
   border-left: 4px solid #4d9de0;
-}
-
-.sidebar.open {
-  transform: translateX(0);
-  pointer-events: auto;
-}
-
-.sidebar-content {
-  padding: 28px 28px 24px;
-  width: 100%;
-  height: 100%;
-  overflow-y: auto;
+  box-shadow: -2px 0 24px rgba(0, 0, 0, 0.5);
+  padding: 28px;
   box-sizing: border-box;
+  overflow-y: auto;
+  pointer-events: auto;
+  backdrop-filter: blur(10px);
 }
 
-.sidebar .close {
-  position: absolute;
-  top: 12px;
-  right: 20px;
-  font-size: 30px;
-  cursor: pointer;
-  color: rgba(255, 255, 255, 0.3);
-  transition: color 0.2s;
-  line-height: 1;
-}
-
-.sidebar .close:hover {
-  color: #fff;
-}
-
-.planet-header {
+.detail-header {
   display: flex;
   align-items: center;
   gap: 14px;
@@ -231,7 +213,7 @@ html, body {
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-#planetColorDot {
+#detailColorDot {
   width: 20px;
   height: 20px;
   border-radius: 50%;
@@ -239,20 +221,33 @@ html, body {
   box-shadow: 0 0 12px rgba(255, 255, 255, 0.15);
 }
 
-#sidebarTitle {
+#detailTitle {
   font-size: 1.6em;
   font-weight: 400;
   letter-spacing: 0.05em;
+  flex: 1;
 }
 
-#sidebarDescription {
+#detailClose {
+  font-size: 30px;
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.3);
+  transition: color 0.2s;
+  line-height: 1;
+}
+
+#detailClose:hover {
+  color: #fff;
+}
+
+#detailDescription {
   font-size: 0.88em;
   line-height: 1.6;
   color: rgba(255, 255, 255, 0.7);
   margin-bottom: 20px;
 }
 
-#sidebarDetails {
+#detailDetails {
   margin-bottom: 20px;
 }
 
@@ -274,7 +269,7 @@ html, body {
   max-width: 60%;
 }
 
-#sidebarFunFact {
+#detailFunFact {
   font-size: 0.82em;
   line-height: 1.5;
   color: rgba(255, 214, 0, 0.7);
@@ -283,6 +278,74 @@ html, body {
   border-radius: 8px;
   border-left: 3px solid rgba(255, 214, 0, 0.3);
   margin-top: 4px;
+}
+
+#backButton {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  width: 48px;
+  height: 48px;
+  background: rgba(13, 29, 73, 0.6);
+  color: #ffd600;
+  border: 1px solid rgba(255, 214, 0, 0.15);
+  border-radius: 50%;
+  cursor: pointer;
+  pointer-events: auto;
+  z-index: 1600;
+  font-size: 1.2em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.3s ease, background 0.3s ease;
+  backdrop-filter: blur(4px);
+}
+
+#backButton:hover {
+  opacity: 0.8;
+  background: rgba(13, 29, 73, 0.9);
+}
+
+#detailHint {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.8em;
+  color: rgba(255, 255, 255, 0.35);
+  letter-spacing: 0.08em;
+  pointer-events: none;
+  background: rgba(5, 8, 30, 0.5);
+  padding: 8px 18px;
+  border-radius: 50px;
+  backdrop-filter: blur(4px);
+  text-align: center;
+}
+
+#detailHintEscape {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.85em;
+  color: rgba(255, 255, 255, 0.25);
+}
+
+#detailFade {
+  position: fixed;
+  inset: 0;
+  background: #000;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 4000;
+}
+
+@media (max-width: 480px) {
+  .detail-info {
+    width: 100vw;
+  }
+  #loadingScreen h1 {
+    font-size: 1.6em;
+    letter-spacing: 0.2em;
+  }
 }
 
 #pauseButton {
