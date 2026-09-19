@@ -15,6 +15,7 @@ export const PLANET_DATA = {
   },
   Mercury: {
     color: '#a8a8a8',
+    inclination: 7.005,
     description: 'Mercury is the smallest planet in our Solar System and the closest to the Sun. It has virtually no atmosphere to retain heat, causing extreme temperature swings.',
     details: {
       'Diameter': '4,879 km',
@@ -29,6 +30,7 @@ export const PLANET_DATA = {
   },
   Venus: {
     color: '#e8c84a',
+    inclination: 3.395,
     description: 'Venus is the hottest planet in the Solar System due to a runaway greenhouse effect. It rotates backwards compared to most other planets.',
     details: {
       'Diameter': '12,104 km',
@@ -43,6 +45,7 @@ export const PLANET_DATA = {
   },
   Earth: {
     color: '#4d9de0',
+    inclination: 0.0,
     description: 'Earth is the third planet from the Sun and the only known world to harbor life. Its liquid surface water, magnetic field, and atmosphere make it uniquely habitable.',
     details: {
       'Diameter': '12,756 km',
@@ -57,6 +60,7 @@ export const PLANET_DATA = {
   },
   Mars: {
     color: '#e07050',
+    inclination: 1.85,
     description: 'Mars is known as the Red Planet due to iron oxide (rust) on its surface. It has the tallest mountain and the longest canyon in the Solar System.',
     details: {
       'Diameter': '6,792 km',
@@ -71,6 +75,7 @@ export const PLANET_DATA = {
   },
   Jupiter: {
     color: '#d4a574',
+    inclination: 1.303,
     description: 'Jupiter is the largest planet in the Solar System — a gas giant with no solid surface. Its Great Red Spot is a storm larger than Earth that has raged for centuries.',
     details: {
       'Diameter': '142,984 km',
@@ -85,6 +90,7 @@ export const PLANET_DATA = {
   },
   Saturn: {
     color: '#e8d5a3',
+    inclination: 2.485,
     description: 'Saturn is famous for its spectacular ring system made of ice and rock particles. It is the least dense planet — it would float in water if you found a big enough pool.',
     details: {
       'Diameter': '120,536 km',
@@ -99,6 +105,7 @@ export const PLANET_DATA = {
   },
   Uranus: {
     color: '#7ec8e3',
+    inclination: 0.773,
     description: 'Uranus is an ice giant with a blue-green color from methane in its atmosphere. It rotates on its side, possibly from a massive ancient collision.',
     details: {
       'Diameter': '51,118 km',
@@ -113,6 +120,7 @@ export const PLANET_DATA = {
   },
   Neptune: {
     color: '#3f54ba',
+    inclination: 1.767,
     description: 'Neptune is the windiest planet in the Solar System, with gusts reaching 2,100 km/h. It is the farthest and coldest planet from the Sun.',
     details: {
       'Diameter': '49,528 km',

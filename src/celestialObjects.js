@@ -1,7 +1,8 @@
 import * as THREE from 'three';
+import { textureLoader } from './resources.js';
 
 export class Star extends THREE.Mesh {
-  constructor(name, size, rotationSpeed, color, texture, textureLoader) {
+  constructor(name, size, rotationSpeed, color, texture) {
     const mesh = new THREE.SphereGeometry(size, 32, 32);
     const material = new THREE.MeshBasicMaterial({ map: textureLoader.load(texture) });
     super(mesh, material);
@@ -21,7 +22,7 @@ export class Star extends THREE.Mesh {
 }
 
 export class Planet extends THREE.Mesh {
-  constructor(name, size, planetOrbit, distancePerYear, rotationSpeed, axisTilt, color, texture, textureLoader) {
+  constructor(name, size, planetOrbit, distancePerYear, rotationSpeed, axisTilt, color, texture) {
     const planetMesh = new THREE.SphereGeometry(size, 24, 24);
     const planetTexture = new THREE.MeshBasicMaterial({ map: textureLoader.load(texture) });
     super(planetMesh, planetTexture);
@@ -30,16 +31,20 @@ export class Planet extends THREE.Mesh {
     this.name = name;
     this.size = size;
     this.orbitRadius = planetOrbit / 3000000;
-    this.orbitSpeed = distancePerYear / 600000000000;
+    this.orbitSpeed = distancePerYear / 3000000000000;
     this.rotationSpeed = rotationSpeed;
     this.axisTilt = axisTilt;
+    this.orbitInclination = 0;
     this.color = color;
     this.texture = texture;
   }
 
   update(deltaTime, simTime) {
-    this.position.x = this.orbitRadius * Math.cos(-this.orbitSpeed * simTime * 1000);
-    this.position.z = this.orbitRadius * Math.sin(-this.orbitSpeed * simTime * 1000);
+    const inclination = THREE.MathUtils.degToRad(this.orbitInclination || 0);
+    const angle = -this.orbitSpeed * simTime * 3000;
+    this.position.x = this.orbitRadius * Math.cos(angle);
+    this.position.z = this.orbitRadius * Math.sin(angle) * Math.cos(inclination);
+    this.position.y = this.orbitRadius * Math.sin(angle) * Math.sin(inclination);
     this.rotation.x = THREE.MathUtils.degToRad(this.axisTilt);
     this.rotation.y += this.rotationSpeed * deltaTime;
   }
@@ -48,7 +53,7 @@ export class Planet extends THREE.Mesh {
 }
 
 export class Moon extends THREE.Mesh {
-  constructor(planet, name, size, orbitRadius, orbitSpeed, rotationSpeed, color, texture, textureLoader) {
+  constructor(planet, name, size, orbitRadius, orbitSpeed, rotationSpeed, color, texture) {
     const moonMesh = new THREE.SphereGeometry(size, 16, 16);
     const moonTexture = new THREE.MeshBasicMaterial({ map: textureLoader.load(texture) });
     super(moonMesh, moonTexture);
@@ -58,15 +63,18 @@ export class Moon extends THREE.Mesh {
     this.planet = planet;
     this.size = size;
     this.orbitRadius = orbitRadius;
-    this.orbitSpeed = orbitSpeed / 9000000;
+    this.orbitSpeed = orbitSpeed / 3000000000000;
     this.rotationSpeed = rotationSpeed;
     this.color = color;
     this.texture = texture;
   }
 
   update(deltaTime, simTime) {
-    this.position.x = this.planet.position.x + this.orbitRadius * Math.cos(-this.orbitSpeed * simTime * 1000);
-    this.position.z = this.planet.position.z + this.orbitRadius * Math.sin(-this.orbitSpeed * simTime * 1000);
+    const angle = -this.orbitSpeed * simTime * 3000;
+    const inclination = THREE.MathUtils.degToRad(this.planet.axisTilt || 0);
+    this.position.x = this.planet.position.x + this.orbitRadius * Math.cos(angle);
+    this.position.z = this.planet.position.z + this.orbitRadius * Math.sin(angle) * Math.cos(inclination);
+    this.position.y = this.planet.position.y + this.orbitRadius * Math.sin(angle) * Math.sin(inclination);
   }
 
   isMoon() { return true; }
@@ -89,6 +97,7 @@ export class PlanetRing extends THREE.Mesh {
 
   update() {
     this.position.x = this.planet.position.x;
+    this.position.y = this.planet.position.y;
     this.position.z = this.planet.position.z;
     this.rotation.x = THREE.MathUtils.degToRad(this.planet.axisTilt + 270);
   }
@@ -190,22 +199,26 @@ export class AsteroidBelt extends THREE.Points {
 }
 
 export function cameraOrbit(camera, planet, simTime) {
-  camera.position.x = (planet.orbitRadius + 15) * Math.cos(-planet.orbitSpeed * simTime * 1000);
-  camera.position.z = (planet.orbitRadius + 15) * Math.sin(-planet.orbitSpeed * simTime * 1000);
+  camera.position.x = (planet.orbitRadius + 15) * Math.cos(-planet.orbitSpeed * simTime * 3000);
+  camera.position.z = (planet.orbitRadius + 15) * Math.sin(-planet.orbitSpeed * simTime * 3000);
   camera.position.y = planet.position.y + 3;
 }
 
-export function createOrbitPath(orbitRadius, color = '#444466', thickness = null) {
+export function createOrbitPath(orbitRadius, color = '#444466', thickness = null, inclination = 0) {
   const segments = 128;
   const points = [];
+  const inclRad = THREE.MathUtils.degToRad(inclination);
   for (let i = 0; i < segments; i++) {
     const theta = (i / segments) * Math.PI * 2;
-    points.push(new THREE.Vector3(orbitRadius * Math.cos(theta), 0, orbitRadius * Math.sin(theta)));
+    const x = orbitRadius * Math.cos(theta);
+    const z = orbitRadius * Math.sin(theta) * Math.cos(inclRad);
+    const y = orbitRadius * Math.sin(theta) * Math.sin(inclRad);
+    points.push(new THREE.Vector3(x, y, z));
   }
   const curve = new THREE.CatmullRomCurve3(points, true);
-  const tubeRadius = thickness ?? Math.max(0.4, orbitRadius * 0.004);
+  const tubeRadius = thickness ?? Math.max(0.5, orbitRadius * 0.004);
   const geometry = new THREE.TubeGeometry(curve, segments, tubeRadius, 8, true);
-  const material = new THREE.MeshBasicMaterial({ color: new THREE.Color(color), opacity: 0.55, transparent: true });
+  const material = new THREE.MeshBasicMaterial({ color: new THREE.Color(color), opacity: 0.65, transparent: true });
   const orbitPath = new THREE.Mesh(geometry, material);
   orbitPath.userData.isOrbitPath = true;
   return orbitPath;

@@ -1,54 +1,61 @@
 import * as THREE from 'three';
 import { PlanetRing, createOrbitPath, generateRingTexture } from './celestialObjects.js';
 import { createStarfield } from './starfield.js';
+import { PLANET_DATA } from './planetData.js';
+import { textureLoader } from './resources.js';
 
 export const MOON_DATA = {
   Sun: [],
   Mercury: [],
   Venus: [],
   Earth: [
-    { name: 'Moon', size: 0.42, orb: 2.3, speed: 0.9 },
+    { name: 'Moon', texture: 'moon.jpg', size: 0.3, orb: 4, speed: 2420000 },
   ],
   Mars: [
-    { name: 'Phobos', size: 0.26, orb: 1.9, speed: 1.4 },
-    { name: 'Deimos', size: 0.2, orb: 2.6, speed: 0.8 },
+    { name: 'Phobos', texture: 'phobos.jpg', size: 0.09, orb: 2.9, speed: 2138000 },
+    { name: 'Deimos', texture: 'deimos.jpg', size: 0.08, orb: 4.5, speed: 1350000 },
   ],
   Jupiter: [
-    { name: 'Io', size: 0.85, orb: 1.9, speed: 1.1 },
-    { name: 'Europa', size: 0.74, orb: 2.4, speed: 0.9 },
-    { name: 'Ganymede', size: 1.1, orb: 2.9, speed: 0.7 },
-    { name: 'Callisto', size: 1.0, orb: 3.5, speed: 0.5 },
+    { name: 'Io', texture: 'io.jpg', size: 0.13, orb: 4.5, speed: 17334000 },
+    { name: 'Europa', texture: 'europa.jpg', size: 0.11, orb: 7, speed: 10340000 },
+    { name: 'Ganymede', texture: 'ganymede.jpg', size: 0.18, orb: 10, speed: 7145000 },
+    { name: 'Callisto', texture: 'callisto.jpg', size: 0.16, orb: 14, speed: 4356000 },
   ],
   Saturn: [
-    { name: 'Mimas', size: 0.42, orb: 2.1, speed: 1.3 },
-    { name: 'Tethys', size: 0.56, orb: 2.6, speed: 1.0 },
-    { name: 'Dione', size: 0.72, orb: 3.1, speed: 0.8 },
-    { name: 'Titan', size: 1.05, orb: 3.8, speed: 0.5 },
+    { name: 'Mimas', texture: 'mimas.jpg', size: 0.1, orb: 3.2, speed: 4310000 },
+    { name: 'Enceladus', texture: 'enceladus.jpg', size: 0.1, orb: 4, speed: 3135000 },
+    { name: 'Tethys', texture: 'tethys.jpg', size: 0.12, orb: 5, speed: 2210000 },
+    { name: 'Dione', texture: 'dione.jpg', size: 0.12, orb: 6.4, speed: 1640000 },
+    { name: 'Rhea', texture: 'rhea.jpg', size: 0.14, orb: 8.5, speed: 1125000 },
+    { name: 'Titan', texture: 'titan.jpg', size: 0.22, orb: 14, speed: 604000 },
+    { name: 'Iapetus', texture: 'iapetus.jpg', size: 0.14, orb: 15, speed: 520000 },
   ],
   Uranus: [
-    { name: 'Miranda', size: 0.48, orb: 1.9, speed: 1.2 },
-    { name: 'Ariel', size: 0.62, orb: 2.4, speed: 0.9 },
-    { name: 'Titania', size: 0.8, orb: 3.0, speed: 0.6 },
-    { name: 'Oberon', size: 0.76, orb: 3.5, speed: 0.5 },
+    { name: 'Miranda', texture: 'miranda.jpg', size: 0.09, orb: 3.2, speed: 1000000 },
+    { name: 'Ariel', texture: 'ariel.jpg', size: 0.11, orb: 4.4, speed: 750000 },
+    { name: 'Umbriel', texture: 'umbriel.jpg', size: 0.11, orb: 5.6, speed: 540000 },
+    { name: 'Titania', texture: 'titania.jpg', size: 0.14, orb: 7.5, speed: 400000 },
+    { name: 'Oberon', texture: 'oberon.jpg', size: 0.14, orb: 9.5, speed: 315000 },
   ],
   Neptune: [
-    { name: 'Triton', size: 0.9, orb: 2.4, speed: 0.7 },
-    { name: 'Nereid', size: 0.5, orb: 3.3, speed: 0.4 },
+    { name: 'Triton', texture: 'triton.jpg', size: 0.16, orb: 5.5, speed: 1050000 },
+    { name: 'Nereid', texture: null, size: 0.09, orb: 9, speed: 210000 },
   ],
 };
 
 export class DetailScene {
-  constructor(planet, textureLoader) {
+  constructor(planet) {
     this.name = planet.name;
     this.scene = new THREE.Scene();
     createStarfield(this.scene);
 
     this.group = new THREE.Group();
+    this.group.name = 'DetailGroup';
     this.scene.add(this.group);
 
     this.planetObj = this.buildPlanet(planet);
     this.moons = this.buildMoons(planet);
-    this.ring = this.buildRing(planet);
+    this.ring = this.buildRing();
     this.frameRadius = planet.size * 1.3;
 
     if (this.ring) {
@@ -59,6 +66,7 @@ export class DetailScene {
     }
     this.frameRadius = this.frameRadius * 1.25 + planet.size;
 
+    this.sun = this.buildSun();
     this.rotationSpeed = planet.rotationSpeed || 0;
   }
 
@@ -70,6 +78,7 @@ export class DetailScene {
     const copy = new THREE.Mesh(geometry, material);
     copy.name = planet.name;
     copy.size = planet.size;
+    copy.orbitRadius = planet.orbitRadius || 0;
     copy.rotationSpeed = planet.rotationSpeed;
     copy.axisTilt = planet.axisTilt ?? 0;
     copy.rotation.set(THREE.MathUtils.degToRad(planet.axisTilt ?? 0), 0, 0);
@@ -80,40 +89,67 @@ export class DetailScene {
   buildMoons(planet) {
     const moons = [];
     const config = MOON_DATA[planet.name] ?? [];
+    const moonOrbitGroup = new THREE.Group();
+    moonOrbitGroup.name = 'MoonOrbitGroup';
+    moonOrbitGroup.rotation.x = THREE.MathUtils.degToRad(planet.axisTilt ?? 0);
+    this.group.add(moonOrbitGroup);
+    this.moonOrbitGroup = moonOrbitGroup;
     for (const spec of config) {
       const size = planet.size * spec.size;
       const orb = planet.size * spec.orb;
-      const mesh = new THREE.Mesh(
-        new THREE.SphereGeometry(size, 16, 16),
-        new THREE.MeshBasicMaterial({ map: generateMoonTexture() })
-      );
+      const material = spec.texture
+        ? new THREE.MeshBasicMaterial({ map: textureLoader.load('./static/images/' + spec.texture) })
+        : new THREE.MeshBasicMaterial({ map: generateMoonTexture() });
+      const mesh = new THREE.Mesh(new THREE.SphereGeometry(size, 16, 16), material);
       mesh.name = spec.name;
+      mesh.size = size;
+      mesh.userData.isMoon = true;
       mesh.rotation.x = THREE.MathUtils.degToRad(20 + Math.random() * 40);
-      this.group.add(mesh);
-      this.group.add(createOrbitPath(orb, '#5a6a8a', 0.08));
+      moonOrbitGroup.add(mesh);
+
+      const path = createOrbitPath(orb, '#5a6a8a', 0.12, 0);
+      path.userData.planet = { name: spec.name, color: '#5a6a8a' };
+      path.userData.isMoon = true;
+      path.userData.moonName = spec.name;
+      moonOrbitGroup.add(path);
 
       moons.push({
         mesh,
         orb,
         phase: Math.random() * Math.PI * 2,
-        speed: spec.speed,
+        speed: spec.speed * 5e-8,
       });
     }
     return moons;
   }
 
-  buildRing(planet) {
-    if (planet.name === 'Saturn') {
-      const ring = new PlanetRing(planet, 1, 5, generateRingTexture());
+  buildRing() {
+    if (this.name === 'Saturn') {
+      const ring = new PlanetRing(this.planetObj, 1, 5, generateRingTexture());
       this.group.add(ring);
       return ring;
     }
-    if (planet.name === 'Uranus') {
-      const ring = new PlanetRing(planet, 3, 4);
+    if (this.name === 'Uranus') {
+      const ring = new PlanetRing(this.planetObj, 3, 4);
       this.group.add(ring);
       return ring;
     }
     return null;
+  }
+
+  buildSun() {
+    if (this.name === 'Sun') return null;
+    const size = this.planetObj.size * 0.5;
+    const mesh = new THREE.Mesh(
+      new THREE.SphereGeometry(size, 24, 24),
+      new THREE.MeshBasicMaterial({ map: textureLoader.load('./static/images/sun.jpg') })
+    );
+    mesh.name = 'Sun';
+    const sunDist = this.frameRadius * 3 + this.planetObj.orbitRadius * 0.1;
+    const angle = Math.PI / 4;
+    mesh.position.set(sunDist * Math.cos(angle), this.frameRadius * 0.5, -sunDist * Math.sin(angle));
+    this.group.add(mesh);
+    return mesh;
   }
 
   update(deltaTime) {
@@ -121,9 +157,11 @@ export class DetailScene {
     for (const moon of this.moons) {
       moon.phase += moon.speed * deltaTime;
       moon.mesh.position.x = Math.cos(moon.phase) * moon.orb;
+      moon.mesh.position.y = 0;
       moon.mesh.position.z = Math.sin(moon.phase) * moon.orb;
       moon.mesh.rotation.y += 0.25 * deltaTime;
     }
+    if (this.sun) this.sun.rotation.y += 0.05 * deltaTime;
     this.ring?.update();
   }
 }

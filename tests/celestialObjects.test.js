@@ -71,6 +71,7 @@ vi.mock('three', () => {
   THREE.LinearMipmapLinearFilter = Symbol('LinearMipmapLinearFilter');
   THREE.MathUtils = { degToRad: (d) => d * Math.PI / 180 };
   THREE.TextureLoader = function() { return mockLoader; };
+  THREE.LoadingManager = function() { return { onProgress: () => {}, onLoad: () => {} }; };
   THREE.Color = function(hex) { return { hex }; };
   THREE.Vector3 = class { constructor(x, y, z) { this.x = x || 0; this.y = y || 0; this.z = z || 0; } set(x, y, z) { this.x = x; this.y = y; this.z = z; } lerpVectors(a, b, t) { this.x = a.x + (b.x - a.x) * t; this.y = a.y + (b.y - a.y) * t; this.z = a.z + (b.z - a.z) * t; } clone() { return new THREE.Vector3(this.x, this.y, this.z); } };
   THREE.RepeatWrapping = Symbol('RepeatWrapping');
@@ -90,13 +91,13 @@ describe('Star', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    star = new CELESTIAL.Star('Sun', 15, 3, '#ffd600', 'sun.jpg', mockLoader);
+    star = new CELESTIAL.Star('Sun', 15, 0.15, '#ffd600', 'sun.jpg');
   });
 
   it('constructs with correct properties', () => {
     expect(star.name).toBe('Sun');
     expect(star.size).toBe(15);
-    expect(star.rotationSpeed).toBe(3);
+    expect(star.rotationSpeed).toBe(0.15);
     expect(star.color).toBe('#ffd600');
     expect(star.texture).toBe('sun.jpg');
   });
@@ -108,7 +109,7 @@ describe('Star', () => {
   it('update adds rotation based on deltaTime', () => {
     const initialY = star.rotation.y;
     star.update(0.016);
-    expect(star.rotation.y).toBe(initialY + 3 * 0.016);
+    expect(star.rotation.y).toBe(initialY + 0.15 * 0.016);
   });
 
   it('update with zero delta does not rotate', () => {
@@ -127,7 +128,7 @@ describe('Planet', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    planet = new CELESTIAL.Planet('Earth', 2, 150700000, 188400000, 0.05, 23.5, '#4d9de0', 'earth.jpg', mockLoader);
+    planet = new CELESTIAL.Planet('Earth', 2, 150700000, 188400000, 0.05, 23.5, '#4d9de0', 'earth.jpg');
   });
 
   it('constructs with correct properties', () => {
@@ -144,7 +145,7 @@ describe('Planet', () => {
   });
 
   it('computes orbitSpeed correctly', () => {
-    expect(planet.orbitSpeed).toBe(188400000 / 600000000000);
+    expect(planet.orbitSpeed).toBe(188400000 / 3000000000000);
   });
 
   it('is a THREE.Mesh', () => {
@@ -157,10 +158,26 @@ describe('Planet', () => {
 
   it('update sets position from orbit and simTime', () => {
     planet.update(0.016, 10);
-    const expectedX = planet.orbitRadius * Math.cos(-planet.orbitSpeed * 10 * 1000);
-    const expectedZ = planet.orbitRadius * Math.sin(-planet.orbitSpeed * 10 * 1000);
+    const expectedX = planet.orbitRadius * Math.cos(-planet.orbitSpeed * 10 * 3000);
+    const expectedZ = planet.orbitRadius * Math.sin(-planet.orbitSpeed * 10 * 3000);
     expect(planet.position.x).toBeCloseTo(expectedX);
     expect(planet.position.z).toBeCloseTo(expectedZ);
+  });
+
+  it('defaults orbitInclination to 0', () => {
+    expect(planet.orbitInclination).toBe(0);
+  });
+
+  it('update applies orbitInclination to positions', () => {
+    planet.orbitInclination = 7;
+    planet.update(0.016, 10);
+    const angle = -planet.orbitSpeed * 10 * 3000;
+    const expectedX = planet.orbitRadius * Math.cos(angle);
+    const expectedZ = planet.orbitRadius * Math.sin(angle) * Math.cos(THREE.MathUtils.degToRad(7));
+    const expectedY = planet.orbitRadius * Math.sin(angle) * Math.sin(THREE.MathUtils.degToRad(7));
+    expect(planet.position.x).toBeCloseTo(expectedX);
+    expect(planet.position.z).toBeCloseTo(expectedZ);
+    expect(planet.position.y).toBeCloseTo(expectedY);
   });
 
   it('update adds rotation over deltaTime', () => {
@@ -175,8 +192,8 @@ describe('Moon', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    planet = new CELESTIAL.Planet('Earth', 2, 150700000, 188400000, 0.05, 23.5, '#4d9de0', 'earth.jpg', mockLoader);
-    moon = new CELESTIAL.Moon(planet, 'Lunar', 1, 4, 17700, 0.05, '#e0e0e0', 'moon.jpg', mockLoader);
+    planet = new CELESTIAL.Planet('Earth', 2, 150700000, 188400000, 0.05, 23.5, '#4d9de0', 'earth.jpg');
+    moon = new CELESTIAL.Moon(planet, 'Lunar', 1, 4, 17700, 0.05, '#e0e0e0', 'moon.jpg');
   });
 
   it('constructs with correct properties', () => {
@@ -198,10 +215,14 @@ describe('Moon', () => {
   it('update positions relative to planet', () => {
     planet.update(0.016, 5);
     moon.update(0.016, 5);
-    const offsetX = moon.orbitRadius * Math.cos(-moon.orbitSpeed * 5 * 1000);
-    const offsetZ = moon.orbitRadius * Math.sin(-moon.orbitSpeed * 5 * 1000);
+    const angle = -moon.orbitSpeed * 5 * 3000;
+    const inclination = THREE.MathUtils.degToRad(planet.axisTilt || 0);
+    const offsetX = moon.orbitRadius * Math.cos(angle);
+    const offsetZ = moon.orbitRadius * Math.sin(angle) * Math.cos(inclination);
+    const offsetY = moon.orbitRadius * Math.sin(angle) * Math.sin(inclination);
     expect(moon.position.x).toBe(planet.position.x + offsetX);
     expect(moon.position.z).toBe(planet.position.z + offsetZ);
+    expect(moon.position.y).toBe(planet.position.y + offsetY);
   });
 });
 
@@ -210,7 +231,7 @@ describe('PlanetRing', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    planet = new CELESTIAL.Planet('Saturn', 6.5, 1450400000 / 2, 62040816, 0.05, 26.73, '#e8d5a3', 'saturn.jpg', mockLoader);
+    planet = new CELESTIAL.Planet('Saturn', 6.5, 1450400000 / 2, 62040816, 0.05, 26.73, '#e8d5a3', 'saturn.jpg');
     ring = new CELESTIAL.PlanetRing(planet, 1, 5);
   });
 
@@ -222,6 +243,7 @@ describe('PlanetRing', () => {
     planet.update(0.016, 10);
     ring.update();
     expect(ring.position.x).toBe(planet.position.x);
+    expect(ring.position.y).toBe(planet.position.y);
     expect(ring.position.z).toBe(planet.position.z);
   });
 });
@@ -255,11 +277,11 @@ describe('AsteroidBelt', () => {
 
 describe('cameraOrbit', () => {
   it('positions camera around a planet', () => {
-    const planet = new CELESTIAL.Planet('Mars', 1.5, 207940000, 153191489, 0.05, 25, '#e07050', 'mars.jpg', mockLoader);
+    const planet = new CELESTIAL.Planet('Mars', 1.5, 207940000, 153191489, 0.05, 25, '#e07050', 'mars.jpg');
     const camera = { position: { x: 0, y: 0, z: 0 } };
     CELESTIAL.cameraOrbit(camera, planet, 15);
-    const expectedX = (planet.orbitRadius + 15) * Math.cos(-planet.orbitSpeed * 15 * 1000);
-    const expectedZ = (planet.orbitRadius + 15) * Math.sin(-planet.orbitSpeed * 15 * 1000);
+    const expectedX = (planet.orbitRadius + 15) * Math.cos(-planet.orbitSpeed * 15 * 3000);
+    const expectedZ = (planet.orbitRadius + 15) * Math.sin(-planet.orbitSpeed * 15 * 3000);
     expect(camera.position.x).toBeCloseTo(expectedX);
     expect(camera.position.z).toBeCloseTo(expectedZ);
   });
@@ -285,6 +307,19 @@ describe('planetData integration', () => {
       expect(PD.PLANET_DATA[name].description).toBeDefined();
       expect(PD.PLANET_DATA[name].details).toBeDefined();
       expect(PD.PLANET_DATA[name].funFact).toBeDefined();
+    }
+  });
+
+  it('MOON_INFO covers all MOON_DATA moons', async () => {
+    const MD = await import('../src/detailScene.js');
+    const M = await import('../src/moonData.js');
+    for (const config of Object.values(MD.MOON_DATA)) {
+      for (const moon of config) {
+        expect(M.MOON_INFO[moon.name]).toBeDefined();
+        expect(M.MOON_INFO[moon.name].description).toBeDefined();
+        expect(M.MOON_INFO[moon.name].details).toBeDefined();
+        expect(M.MOON_INFO[moon.name].funFact).toBeDefined();
+      }
     }
   });
 });
