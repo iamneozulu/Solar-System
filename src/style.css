@@ -484,6 +484,40 @@ html, body {
   background: rgba(0, 0, 0, 0.9);
 }
 
+#compareButton .compare-icon {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 14px;
+}
+
+#compareButton .compare-bar {
+  width: 4px;
+  border-radius: 1px;
+  background: rgba(255, 255, 255, 0.75);
+  transition: background 0.3s ease, box-shadow 0.3s ease;
+}
+
+#compareButton .compare-bar:nth-child(1) { height: 6px; }
+#compareButton .compare-bar:nth-child(2) { height: 10px; }
+#compareButton .compare-bar:nth-child(3) { height: 14px; }
+#compareButton .compare-bar:nth-child(4) { height: 8px; }
+
+#compareButton .compare-label {
+  font-size: 0.85em;
+}
+
+#compareButton.active {
+  border-color: var(--accent);
+  color: var(--accent);
+  box-shadow: 0 0 16px var(--accent);
+}
+
+#compareButton.active .compare-bar {
+  background: var(--accent);
+  box-shadow: 0 0 8px var(--accent);
+}
+
 #toScaleButton .to-scale-dot {
   width: 12px;
   height: 12px;
@@ -551,9 +585,191 @@ html, body {
   opacity: 1;
 }
 
+#compareView {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1500;
+}
+
+#compareView.hidden {
+  display: none;
+}
+
+#compareBackButton {
+  position: fixed;
+  top: 20px;
+  left: 276px;
+  width: 48px;
+  height: 48px;
+  background: rgba(255, 255, 255, 0.9);
+  color: #1a1a1a;
+  border: 1px solid rgba(0, 0, 0, 0.25);
+  border-radius: 50%;
+  cursor: pointer;
+  pointer-events: auto;
+  z-index: 1601;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.3s ease, background 0.3s ease;
+  backdrop-filter: blur(4px);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
+}
+
+#compareBackButton:hover {
+  opacity: 0.8;
+  background: rgba(255, 255, 255, 1);
+}
+
+#compareBackButton svg {
+  display: block;
+}
+
+#compareSidebar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 260px;
+  height: 100vh;
+  background: rgba(255, 255, 255, 0.94);
+  color: #1a1a1a;
+  border-right: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 2px 0 24px rgba(0, 0, 0, 0.12);
+  padding: 20px 14px;
+  box-sizing: border-box;
+  overflow-y: auto;
+  pointer-events: auto;
+  backdrop-filter: blur(8px);
+  z-index: 1600;
+}
+
+.compare-sidebar-header {
+  margin-bottom: 14px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  padding-bottom: 12px;
+}
+
+.compare-sidebar-header h3 {
+  font-size: 1.1em;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  margin-bottom: 8px;
+}
+
+.compare-sidebar-sub {
+  font-size: 0.75em;
+  color: rgba(0, 0, 0, 0.55);
+  line-height: 1.4;
+  margin-top: 8px;
+}
+
+.compare-sidebar-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.compare-sidebar-actions button {
+  flex: 1;
+  padding: 5px 10px;
+  background: rgba(0, 0, 0, 0.05);
+  color: #1a1a1a;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.78em;
+  letter-spacing: 0.03em;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.compare-sidebar-actions button:hover {
+  background: rgba(0, 0, 0, 0.09);
+  border-color: rgba(0, 0, 0, 0.2);
+}
+
+.compare-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  background: transparent;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 8px;
+  padding: 8px 10px;
+  color: #1a1a1a;
+  cursor: pointer;
+  margin-bottom: 6px;
+  text-align: left;
+  transition: background 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+  font-family: inherit;
+}
+
+.compare-item:hover {
+  background: rgba(0, 0, 0, 0.05);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+.compare-item-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.15);
+}
+
+.compare-item-name {
+  flex: 1;
+  font-size: 0.9em;
+  font-weight: 600;
+}
+
+.compare-item-km {
+  font-size: 0.68em;
+  color: rgba(0, 0, 0, 0.55);
+  text-align: right;
+  max-width: 110px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.compare-item.off {
+  opacity: 0.4;
+}
+
+.compare-item.off .compare-item-dot {
+  background: #ffffff !important;
+  box-shadow: none;
+  border: 1px solid rgba(0, 0, 0, 0.35);
+}
+
+#compareHint {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.8em;
+  color: #1a1a1a;
+  letter-spacing: 0.08em;
+  pointer-events: none;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 8px 18px;
+  border-radius: 50px;
+  backdrop-filter: blur(4px);
+  text-align: center;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  z-index: 1600;
+}
+
 @media (max-width: 480px) {
   .sidebar {
     width: 100vw;
+  }
+  #compareSidebar {
+    width: 82vw;
+  }
+  #compareBackButton {
+    left: 82vw;
   }
   #loadingScreen h1 {
     font-size: 1.6em;

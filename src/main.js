@@ -90,7 +90,11 @@ function animate(cameraManager, uiController) {
   uiController.updateHover(cameraManager);
   uiController.updateMoonFocus(cameraManager);
   
-  if (uiController.moonFocus) {
+  if (uiController.compareActive && uiController.compareScene) {
+    if (!uiController.getPaused()) uiController.compareScene.update(deltaTime);
+    cameraManager.detailControls.update();
+    renderer.render(uiController.compareScene.scene, cameraManager.detailCamera);
+  } else if (uiController.moonFocus) {
     if (uiController.moonFocus.isDetail) {
       renderer.render(uiController.detailScene.scene, cameraManager.detailCamera);
     } else {

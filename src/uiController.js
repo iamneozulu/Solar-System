@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { PLANET_DATA } from './planetData.js';
 import { MOON_INFO } from './moonData.js';
 import { DetailScene } from './detailScene.js';
+import { ComparisonScene } from './comparisonScene.js';
 
 export class UIController {
   constructor(cameraManager, simulation) {
@@ -11,6 +12,9 @@ export class UIController {
     this.detailPlanet = null;
     this.detailActive = false;
     this.moonFocus = null;
+    this.compareScene = null;
+    this.compareActive = false;
+    this.compareSelected = new Set(['Sun', 'Mercury', 'Venus', 'Earth', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune']);
     this.isPaused = false;
     this.infoVisible = true;
     this.hoverPointer = new THREE.Vector2(-2, -2);
@@ -21,6 +25,7 @@ export class UIController {
     this.toScaleButton = document.getElementById('toScaleButton');
     this.orbitToggle = document.getElementById('orbitToggle');
     this.orbitVisible = true;
+    this.compareButton = document.getElementById('compareButton');
     
     this.setupEventListeners();
     this.updateToScaleButton();
@@ -46,9 +51,29 @@ export class UIController {
     };
     
     document.getElementById('backButton').onclick = () => {
-      if (this.moonFocus) this.exitMoonFocus(this.cameraManager);
+      if (this.compareActive) this.leaveCompare();
+      else if (this.moonFocus) this.exitMoonFocus(this.cameraManager);
       else this.exitDetail(this.cameraManager);
     };
+
+    const compareBackButton = document.getElementById('compareBackButton');
+    if (compareBackButton) {
+      compareBackButton.onclick = () => this.leaveCompare();
+    }
+
+    if (this.compareButton) {
+      this.compareButton.onclick = () => this.toggleCompare();
+    }
+
+    const compareAllButton = document.getElementById('compareAllButton');
+    if (compareAllButton) {
+      compareAllButton.onclick = () => this.setAllCompareBodies(true);
+    }
+
+    const compareNoneButton = document.getElementById('compareNoneButton');
+    if (compareNoneButton) {
+      compareNoneButton.onclick = () => this.setAllCompareBodies(false);
+    }
 
     document.getElementById('infoToggle').onclick = () => this.toggleInfoPanel();
 
@@ -62,13 +87,115 @@ export class UIController {
 
     document.addEventListener('keydown', (event) => {
       if (event.key === 'Escape') {
-        if (this.moonFocus) this.exitMoonFocus(this.cameraManager);
+        if (this.compareActive) this.leaveCompare();
+        else if (this.moonFocus) this.exitMoonFocus(this.cameraManager);
         else this.exitDetail(this.cameraManager);
       }
       if (event.key === 'i' || event.key === 'I') {
         this.toggleInfoPanel();
       }
     });
+  }
+
+  toggleCompare() {
+    if (this.cameraManager.transition) return;
+    if (this.compareActive) this.leaveCompare();
+    else this.enterCompare();
+  }
+
+  enterCompare() {
+    if (this.compareActive) return;
+    if (this.detailActive) {
+      this.detailActive = false;
+      this.detailScene = null;
+      this.detailPlanet = null;
+      this.moonFocus = null;
+      this.cameraManager.leaveDetail();
+      document.getElementById('detailPanel').classList.remove('open');
+      document.getElementById('detailView').classList.add('hidden');
+    }
+
+    this.compareActive = true;
+    if (!this.compareScene) {
+      this.compareScene = new ComparisonScene();
+      this.buildCompareSidebar();
+    }
+    this.refreshCompareLayout();
+
+    this.cameraManager.enterCompare(this.compareScene);
+    this.updateCompareButton();
+    document.getElementById('compareView').classList.remove('hidden');
+  }
+
+  leaveCompare() {
+    if (!this.compareActive) return;
+    this.compareActive = false;
+    this.cameraManager.leaveCompare();
+    this.updateCompareButton();
+    document.getElementById('compareView').classList.add('hidden');
+  }
+
+  updateCompareButton() {
+    if (!this.compareButton) return;
+    this.compareButton.classList.toggle('active', this.compareActive);
+  }
+
+  buildCompareSidebar() {
+    const list = document.getElementById('compareList');
+    if (!list || !this.compareScene) return;
+    list.innerHTML = '';
+
+    for (const body of this.compareScene.bodies) {
+      const item = document.createElement('button');
+      item.type = 'button';
+      item.className = 'compare-item';
+      item.dataset.name = body.name;
+
+      const dot = document.createElement('span');
+      dot.className = 'compare-item-dot';
+      dot.style.background = body.color;
+
+      const name = document.createElement('span');
+      name.className = 'compare-item-name';
+      name.textContent = body.name;
+
+      const km = document.createElement('span');
+      km.className = 'compare-item-km';
+      km.textContent = formatKm(body.km) + (body.host ? ` · ${body.host}'s moon` : '');
+
+      item.appendChild(dot);
+      item.appendChild(name);
+      item.appendChild(km);
+
+      item.onclick = () => this.toggleCompareBody(body.name, item);
+      item.classList.toggle('off', !this.compareSelected.has(body.name));
+      list.appendChild(item);
+    }
+  }
+
+  toggleCompareBody(name, item) {
+    if (this.compareSelected.has(name)) this.compareSelected.delete(name);
+    else this.compareSelected.add(name);
+    if (item) item.classList.toggle('off', !this.compareSelected.has(name));
+    this.refreshCompareLayout();
+  }
+
+  setAllCompareBodies(selectAll) {
+    if (!this.compareScene) return;
+    this.compareSelected.clear();
+    if (selectAll) {
+      for (const body of this.compareScene.bodies) this.compareSelected.add(body.name);
+    }
+    document.querySelectorAll('.compare-item').forEach((el) => {
+      el.classList.toggle('off', !this.compareSelected.has(el.dataset.name));
+    });
+    this.refreshCompareLayout();
+  }
+
+  refreshCompareLayout() {
+    if (!this.compareScene) return;
+    this.compareScene.setSelected(this.compareSelected);
+    this.cameraManager.frameCompare(this.compareScene);
   }
 
   toggleInfoPanel() {
@@ -128,6 +255,7 @@ export class UIController {
   onClick(event, cameraManager) {
     if (!cameraManager || !cameraManager.scene) return;
     if (cameraManager.transition || this.moonFocus) return;
+    if (this.compareActive) return;
     
     // Ignore clicks while loading screen is visible
     const loadingScreen = document.getElementById('loadingScreen');
@@ -280,8 +408,12 @@ export class UIController {
       return;
     }
     
-    const activeScene = this.detailActive && this.detailScene ? this.detailScene.scene : cameraManager.scene;
-    const activeCamera = this.detailActive && this.detailScene ? cameraManager.detailCamera : cameraManager.camera;
+    const activeScene = this.compareActive && this.compareScene
+      ? this.compareScene.scene
+      : (this.detailActive && this.detailScene ? this.detailScene.scene : cameraManager.scene);
+    const activeCamera = this.compareActive
+      ? cameraManager.detailCamera
+      : (this.detailActive && this.detailScene ? cameraManager.detailCamera : cameraManager.camera);
     
     cameraManager.raycaster.setFromCamera(this.hoverPointer, activeCamera);
     const hits = cameraManager.raycaster.intersectObjects(activeScene.children, true);
@@ -305,6 +437,10 @@ export class UIController {
   }
   
   hoverLabelFor(obj) {
+    if (obj.userData.isCompareBody) {
+      const bodyName = obj.userData.bodyName;
+      return { name: bodyName, color: PLANET_DATA[bodyName]?.color || MOON_INFO[bodyName]?.color || null };
+    }
     if (obj.userData.isOrbitPath && obj.userData.planet) {
       return { name: obj.userData.planet.name, color: obj.userData.planet.color };
     }
@@ -346,4 +482,11 @@ export class UIController {
   setCameraManagerScene(scene) {
     this.cameraManager.scene = scene;
   }
+}
+
+function formatKm(km) {
+  if (km >= 1000) {
+    return km.toLocaleString('en-US', { maximumFractionDigits: 0 }) + ' km';
+  }
+  return km.toLocaleString('en-US', { maximumFractionDigits: 1 }) + ' km';
 }

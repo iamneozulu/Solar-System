@@ -94,6 +94,36 @@ export class CameraManager {
     if (this.transition) return;
     this.transition = { phase: 'cover', progress: 0, duration: 0.18 };
   }
+
+  enterCompare(compareScene) {
+    this.detailControls.enabled = true;
+    this.controls.enabled = false;
+    this.detailControls.mouseButtons = { LEFT: THREE.MOUSE.ROTATE, MIDDLE: THREE.MOUSE.DOLLY };
+    this.detailControls.enablePan = false;
+    this.frameCompare(compareScene);
+  }
+
+  frameCompare(compareScene) {
+    const half = compareScene.totalWidth / 2 || 3;
+    const dist = Math.max(half * 2.2, 6);
+    this.detailControls.target.set(0, 0, 0);
+    this.detailControls.minDistance = 2;
+    this.detailControls.maxDistance = Math.max(50, dist * 3);
+    this.detailCamera.position.set(0, half * 0.4, dist);
+    this.detailCamera.lookAt(0, 0, 0);
+    this.detailCamera.updateProjectionMatrix();
+    this.detailControls.update();
+  }
+
+  leaveCompare() {
+    this.moonFocus = null;
+    this.detailControls.enabled = false;
+    this.controls.enabled = true;
+    this.controls.minDistance = 50;
+    this.controls.maxDistance = 1000;
+    this.controls.maxPolarAngle = THREE.MathUtils.degToRad(90);
+    this.controls.update();
+  }
   
   setMoonFocus(moonMesh, host, isDetail) {
     if (this.transition) return;

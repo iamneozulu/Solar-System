@@ -30,6 +30,10 @@
   </button>
 
   <div id="viewControls">
+    <button id="compareButton" title="Compare sizes side by side">
+      <span class="compare-icon"><span class="compare-bar"></span><span class="compare-bar"></span><span class="compare-bar"></span><span class="compare-bar"></span></span>
+      <span class="compare-label">Compare</span>
+    </button>
     <button id="toScaleButton" title="Toggle to scale mode">
       <span class="to-scale-dot"></span>
       <span class="to-scale-label">To Scale</span>
@@ -38,6 +42,24 @@
       <span class="orbit-icon"></span>
       <span class="orbit-label">Orbits</span>
     </button>
+  </div>
+
+  <div id="compareView" class="hidden">
+    <button id="compareBackButton" title="Back to solar system">
+      <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="11 17 5 12 11 7"></polyline></svg>
+    </button>
+    <div id="compareSidebar">
+      <div class="compare-sidebar-header">
+        <h3>Size Comparison</h3>
+        <div class="compare-sidebar-actions">
+          <button type="button" id="compareAllButton">All</button>
+          <button type="button" id="compareNoneButton">None</button>
+        </div>
+        <p class="compare-sidebar-sub">Tap objects to toggle them in the row below.</p>
+      </div>
+      <div id="compareList"></div>
+    </div>
+    <div id="compareHint">Drag to rotate &middot; Scroll to zoom</div>
   </div>
 
   <div id="detailView" class="hidden">
