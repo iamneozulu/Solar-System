@@ -4,16 +4,17 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Solar System</title>
-  <script type="module" crossorigin src="/assets/index-BActQ2Ad.js"></script>
-  <link rel="stylesheet" crossorigin href="/assets/index-CwXyjwXL.css">
+  <script type="module" crossorigin src="/assets/index-DfXLIf56.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-DLQd7Q0_.css">
 </head>
 <body>
   <div id="loadingScreen">
     <div id="stars"></div>
     <div class="loader">
-      <div class="ring"></div>
-      <div class="ring-inner"></div>
-      <div class="planet-preview"></div>
+      <div class="loader-ring"></div>
+      <div class="loader-ring"></div>
+      <div class="loader-ring"></div>
+      <div class="loader-core"></div>
     </div>
     <h1>THE SOLAR SYSTEM</h1>
     <p class="subtitle">An interactive 3D exploration</p>
@@ -21,23 +22,36 @@
       <div id="progressBar"></div>
     </div>
     <span id="progressText">Loading...</span>
-    <button id="launchBtn">Explore</button>
   </div>
 
-  <button id="pauseButton">⏸</button>
+  <button id="pauseButton" title="Pause">
+    <span class="bar"></span>
+    <span class="bar"></span>
+    <span class="play"></span>
+  </button>
 
-  <div id="infoSidebar" class="sidebar">
-    <div class="sidebar-content">
-      <span class="close" onclick="closeSidebar()">&times;</span>
-      <div class="planet-header">
-        <div id="planetColorDot"></div>
-        <h2 id="sidebarTitle">Object Information</h2>
+  <div id="detailView" class="hidden">
+    <button id="backButton" title="Back to solar system">
+      <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+    </button>
+    <button id="infoToggle" title="Toggle info panel (I)">
+      <span></span><span></span><span></span>
+    </button>
+    <div id="detailPanel" class="detail-info">
+      <div class="detail-header">
+        <div id="detailColorDot"></div>
+        <h2 id="detailTitle">Object Information</h2>
       </div>
-      <p id="sidebarDescription">Details about the clicked object will appear here.</p>
-      <div id="sidebarDetails"></div>
-      <div id="sidebarFunFact"></div>
+      <p id="detailDescription">Details about the selected object will appear here.</p>
+      <div id="detailDetails"></div>
+      <div id="detailFunFact"></div>
     </div>
+    <div id="detailHint">Drag to rotate &middot; Scroll to zoom <span id="detailHintEscape">Press Esc to exit</span></div>
   </div>
+
+  <div id="tooltip"></div>
+
+  <div id="detailFade"></div>
 
   <noscript>Your browser does not support JavaScript.</noscript>
 </body>
