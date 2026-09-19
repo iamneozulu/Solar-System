@@ -14,20 +14,20 @@ import {
   AU_KM,
 } from './scaleData.js';
 
-const Sun = new CELESTIAL.Star("Sun", 15, 0.15, PLANET_DATA.Sun.color, "./static/images/sun.jpg");
-const Mercury = new CELESTIAL.Planet("Mercury", 1, 69815000, (392000000 / 1.205), 3, 0.027, PLANET_DATA.Mercury.color, "./static/images/mercury.jpg");
-const Venus = new CELESTIAL.Planet("Venus", 1.9, 108500000, (684000000 / 3.075), 0.05, 177.36, PLANET_DATA.Venus.color, "./static/images/venus.jpg");
-const Earth = new CELESTIAL.Planet("Earth", 2, 150700000, (942000000 / 5), 0.05, 23.5, PLANET_DATA.Earth.color, "./static/images/earth.jpg");
-const Lunar = new CELESTIAL.Moon(Earth, "Lunar", 1, 4, 2420000 * 50, 0.05, "#e0e0e0", "./static/images/moon.jpg");
-const Mars = new CELESTIAL.Planet("Mars", 1.5, 207940000, (1440000000 / 9.4), 0.05, 25, PLANET_DATA.Mars.color, "./static/images/mars.jpg");
-const Jupiter = new CELESTIAL.Planet("Jupiter", 7, 749370000 / 2, (4770000000 / 60), 0.05, 3.13, PLANET_DATA.Jupiter.color, "./static/images/jupiter.jpg");
-const Saturn = new CELESTIAL.Planet("Saturn", 6.5, 1450400000 / 2, (9120000000 / 147), 0.05, 26.73, PLANET_DATA.Saturn.color, "./static/images/saturn.jpg");
+const Sun = new CELESTIAL.Star("Sun", 15, 0.15, PLANET_DATA.Sun.color, "./static/images/sun.webp");
+const Mercury = new CELESTIAL.Planet("Mercury", 1, 69815000, (392000000 / 1.205), 3, 0.027, PLANET_DATA.Mercury.color, "./static/images/mercury.webp");
+const Venus = new CELESTIAL.Planet("Venus", 1.9, 108500000, (684000000 / 3.075), 0.05, 177.36, PLANET_DATA.Venus.color, "./static/images/venus.webp");
+const Earth = new CELESTIAL.Planet("Earth", 2, 150700000, (942000000 / 5), 0.05, 23.5, PLANET_DATA.Earth.color, "./static/images/earth.webp");
+const Lunar = new CELESTIAL.Moon(Earth, "Lunar", 1, 4, 2420000 * 50, 0.05, "#e0e0e0", "./static/images/moon.webp");
+const Mars = new CELESTIAL.Planet("Mars", 1.5, 207940000, (1440000000 / 9.4), 0.05, 25, PLANET_DATA.Mars.color, "./static/images/mars.webp");
+const Jupiter = new CELESTIAL.Planet("Jupiter", 7, 749370000 / 2, (4770000000 / 60), 0.05, 3.13, PLANET_DATA.Jupiter.color, "./static/images/jupiter.webp");
+const Saturn = new CELESTIAL.Planet("Saturn", 6.5, 1450400000 / 2, (9120000000 / 147), 0.05, 26.73, PLANET_DATA.Saturn.color, "./static/images/saturn.webp");
 const SaturnRingTexture = CELESTIAL.generateRingTexture();
 const SaturnRing = new CELESTIAL.PlanetRing(Saturn, 1.2, 2.3, SaturnRingTexture);
-const Uranus = new CELESTIAL.Planet("Uranus", 5, 2930100000 / 3, (18400000000 / 420), 0.05, 97.77, PLANET_DATA.Uranus.color, "./static/images/uranus.jpg");
+const Uranus = new CELESTIAL.Planet("Uranus", 5, 2930100000 / 3, (18400000000 / 420), 0.05, 97.77, PLANET_DATA.Uranus.color, "./static/images/uranus.webp");
 const UranusRingTexture = CELESTIAL.generateRingTexture({ r: 138, g: 160, b: 178, alpha: 0.42 });
 const UranusRing = new CELESTIAL.PlanetRing(Uranus, 1.6, 1.8, UranusRingTexture);
-const Neptune = new CELESTIAL.Planet("Neptune", 5, 4472100000 / 3.5, (28100000000 / 825), 0.05, 28, PLANET_DATA.Neptune.color, "./static/images/neptune.jpg");
+const Neptune = new CELESTIAL.Planet("Neptune", 5, 4472100000 / 3.5, (28100000000 / 825), 0.05, 28, PLANET_DATA.Neptune.color, "./static/images/neptune.webp");
 const NeptuneRingTexture = CELESTIAL.generateRingTexture({ r: 90, g: 105, b: 140, alpha: 0.4 });
 const NeptuneRing = new CELESTIAL.PlanetRing(Neptune, 1.68, 2.62, NeptuneRingTexture);
 

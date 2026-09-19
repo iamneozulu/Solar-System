@@ -21,7 +21,7 @@ export function buildBodyList() {
     km: PLANET_RADII_KM.Sun,
     host: null,
     color: PLANET_DATA.Sun.color,
-    texture: './static/images/sun.jpg',
+    texture: './static/images/sun.webp',
   });
 
   const PLANET_ORDER = ['Mercury', 'Venus', 'Earth', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune'];
@@ -31,7 +31,7 @@ export function buildBodyList() {
       km: PLANET_RADII_KM[name],
       host: null,
       color: PLANET_DATA[name].color,
-      texture: `./static/images/${name.toLowerCase()}.jpg`,
+      texture: `./static/images/${name.toLowerCase()}.webp`,
     });
   }
 

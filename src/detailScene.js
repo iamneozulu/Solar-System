@@ -10,36 +10,36 @@ export const MOON_DATA = {
   Mercury: [],
   Venus: [],
   Earth: [
-    { name: 'Moon', texture: 'moon.jpg', size: 0.3, orb: 4, speed: 2420000 },
+    { name: 'Moon', texture: 'moon.webp', size: 0.3, orb: 4, speed: 2420000 },
   ],
   Mars: [
-    { name: 'Phobos', texture: 'phobos.jpg', size: 0.09, orb: 2.9, speed: 2138000 },
-    { name: 'Deimos', texture: 'deimos.jpg', size: 0.08, orb: 4.5, speed: 1350000 },
+    { name: 'Phobos', texture: 'phobos.webp', size: 0.09, orb: 2.9, speed: 2138000 },
+    { name: 'Deimos', texture: 'deimos.webp', size: 0.08, orb: 4.5, speed: 1350000 },
   ],
   Jupiter: [
-    { name: 'Io', texture: 'io.jpg', size: 0.13, orb: 4.5, speed: 17334000 },
-    { name: 'Europa', texture: 'europa.jpg', size: 0.11, orb: 7, speed: 10340000 },
-    { name: 'Ganymede', texture: 'ganymede.jpg', size: 0.18, orb: 10, speed: 7145000 },
-    { name: 'Callisto', texture: 'callisto.jpg', size: 0.16, orb: 14, speed: 4356000 },
+    { name: 'Io', texture: 'io.webp', size: 0.13, orb: 4.5, speed: 17334000 },
+    { name: 'Europa', texture: 'europa.webp', size: 0.11, orb: 7, speed: 10340000 },
+    { name: 'Ganymede', texture: 'ganymede.webp', size: 0.18, orb: 10, speed: 7145000 },
+    { name: 'Callisto', texture: 'callisto.webp', size: 0.16, orb: 14, speed: 4356000 },
   ],
   Saturn: [
-    { name: 'Mimas', texture: 'mimas.jpg', size: 0.1, orb: 3.2, speed: 4310000 },
-    { name: 'Enceladus', texture: 'enceladus.jpg', size: 0.1, orb: 4, speed: 3135000 },
-    { name: 'Tethys', texture: 'tethys.jpg', size: 0.12, orb: 5, speed: 2210000 },
-    { name: 'Dione', texture: 'dione.jpg', size: 0.12, orb: 6.4, speed: 1640000 },
-    { name: 'Rhea', texture: 'rhea.jpg', size: 0.14, orb: 8.5, speed: 1125000 },
-    { name: 'Titan', texture: 'titan.jpg', size: 0.22, orb: 14, speed: 604000 },
-    { name: 'Iapetus', texture: 'iapetus.jpg', size: 0.14, orb: 15, speed: 520000 },
+    { name: 'Mimas', texture: 'mimas.webp', size: 0.1, orb: 3.2, speed: 4310000 },
+    { name: 'Enceladus', texture: 'enceladus.webp', size: 0.1, orb: 4, speed: 3135000 },
+    { name: 'Tethys', texture: 'tethys.webp', size: 0.12, orb: 5, speed: 2210000 },
+    { name: 'Dione', texture: 'dione.webp', size: 0.12, orb: 6.4, speed: 1640000 },
+    { name: 'Rhea', texture: 'rhea.webp', size: 0.14, orb: 8.5, speed: 1125000 },
+    { name: 'Titan', texture: 'titan.webp', size: 0.22, orb: 14, speed: 604000 },
+    { name: 'Iapetus', texture: 'iapetus.webp', size: 0.14, orb: 15, speed: 520000 },
   ],
   Uranus: [
-    { name: 'Miranda', texture: 'miranda.jpg', size: 0.09, orb: 3.2, speed: 1000000 },
-    { name: 'Ariel', texture: 'ariel.jpg', size: 0.11, orb: 4.4, speed: 750000 },
-    { name: 'Umbriel', texture: 'umbriel.jpg', size: 0.11, orb: 5.6, speed: 540000 },
-    { name: 'Titania', texture: 'titania.jpg', size: 0.14, orb: 7.5, speed: 400000 },
-    { name: 'Oberon', texture: 'oberon.jpg', size: 0.14, orb: 9.5, speed: 315000 },
+    { name: 'Miranda', texture: 'miranda.webp', size: 0.09, orb: 3.2, speed: 1000000 },
+    { name: 'Ariel', texture: 'ariel.webp', size: 0.11, orb: 4.4, speed: 750000 },
+    { name: 'Umbriel', texture: 'umbriel.webp', size: 0.11, orb: 5.6, speed: 540000 },
+    { name: 'Titania', texture: 'titania.webp', size: 0.14, orb: 7.5, speed: 400000 },
+    { name: 'Oberon', texture: 'oberon.webp', size: 0.14, orb: 9.5, speed: 315000 },
   ],
   Neptune: [
-    { name: 'Triton', texture: 'triton.jpg', size: 0.16, orb: 5.5, speed: 1050000 },
+    { name: 'Triton', texture: 'triton.webp', size: 0.16, orb: 5.5, speed: 1050000 },
     { name: 'Nereid', texture: null, size: 0.09, orb: 9, speed: 210000 },
   ],
 };
@@ -155,7 +155,7 @@ export class DetailScene {
     const size = this.planetObj.size * 0.5;
     const mesh = new THREE.Mesh(
       new THREE.SphereGeometry(size, 24, 24),
-      new THREE.MeshBasicMaterial({ map: textureLoader.load('./static/images/sun.jpg') })
+      new THREE.MeshBasicMaterial({ map: textureLoader.load('./static/images/sun.webp') })
     );
     mesh.name = 'Sun';
     const sunDist = this.frameRadius * 3 + this.planetObj.orbitRadius * 0.1;

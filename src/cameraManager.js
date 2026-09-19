@@ -34,7 +34,16 @@ export class CameraManager {
     if (this.renderer.domElement && this.renderer.domElement.addEventListener) {
       this.onMoonWheel = (event) => this.handleMoonWheel(event);
       this.renderer.domElement.addEventListener('wheel', this.onMoonWheel, { passive: false });
+      this.onPinchDown = (event) => this.pinchDown(event);
+      this.onPinchMove = (event) => this.pinchMove(event);
+      this.onPinchUp = (event) => this.pinchEnd(event);
+      this.renderer.domElement.addEventListener('pointerdown', this.onPinchDown);
+      this.renderer.domElement.addEventListener('pointermove', this.onPinchMove);
+      this.renderer.domElement.addEventListener('pointerup', this.onPinchUp);
+      this.renderer.domElement.addEventListener('pointercancel', this.onPinchUp);
     }
+    this.pinchTouches = new Map();
+    this.pinchBaseDistance = 0;
   }
   
   onWindowResize() {
@@ -160,10 +169,43 @@ export class CameraManager {
     if (!this.moonFocus || this.transition) return;
     const focus = this.moonFocus;
     const factor = event.deltaY > 0 ? 1.15 : 1 / 1.15;
+    this.zoomMoon(focus, factor);
+    event.preventDefault();
+  }
+
+  pinchDown(event) {
+    if (!this.moonFocus || this.transition) return;
+    if (event.pointerType !== 'touch') return;
+    this.pinchTouches.set(event.pointerId, { x: event.clientX, y: event.clientY });
+    if (this.pinchTouches.size === 2) {
+      const [a, b] = [...this.pinchTouches.values()];
+      this.pinchBaseDistance = Math.hypot(a.x - b.x, a.y - b.y);
+    }
+  }
+
+  pinchMove(event) {
+    if (!this.moonFocus || this.transition || this.pinchTouches.size !== 2) return;
+    if (event.pointerType !== 'touch' || !this.pinchTouches.has(event.pointerId)) return;
+    this.pinchTouches.set(event.pointerId, { x: event.clientX, y: event.clientY });
+    if (this.pinchTouches.size !== 2 || !this.pinchBaseDistance) return;
+    const [a, b] = [...this.pinchTouches.values()];
+    const dist = Math.hypot(a.x - b.x, a.y - b.y);
+    if (this.pinchBaseDistance) {
+      const factor = this.pinchBaseDistance / dist;
+      this.zoomMoon(this.moonFocus, factor);
+    }
+    this.pinchBaseDistance = dist;
+  }
+
+  pinchEnd(event) {
+    this.pinchTouches.delete(event.pointerId);
+    if (this.pinchTouches.size < 2) this.pinchBaseDistance = 0;
+  }
+
+  zoomMoon(focus, factor) {
     const min = focus.minDist;
     const max = focus.maxDist;
     focus.zoomDist = Math.min(max, Math.max(min, focus.zoomDist * factor));
-    event.preventDefault();
   }
   
   updateMoonFocus() {

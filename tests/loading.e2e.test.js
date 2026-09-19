@@ -50,12 +50,13 @@ describe('E2E: Solar System loads and is operable', () => {
     await loadingScreen.waitFor({ state: 'visible', timeout: 5000 });
     expect(await loadingScreen.isVisible()).toBe(true);
 
-    const progressBar = page.locator('#progressBar');
-    await progressBar.waitFor({ state: 'visible', timeout: 5000 });
-    expect(await progressBar.isVisible()).toBe(true);
-
-    const width = await progressBar.evaluate(el => el.style.width);
-    expect(width).toBe('100%');
+    // Loading can finish so fast the screen hides before we can read the bar,
+    // so accept either a full progress bar or an already-hidden screen.
+    await page.waitForFunction(() => {
+      const bar = document.getElementById('progressBar');
+      const screen = document.getElementById('loadingScreen');
+      return (bar && bar.style.width === '100%') || screen.style.display === 'none';
+    }, { timeout: TIMEOUT });
 
     await loadingScreen.waitFor({ state: 'hidden', timeout: TIMEOUT });
     expect(await loadingScreen.isVisible()).toBe(false);

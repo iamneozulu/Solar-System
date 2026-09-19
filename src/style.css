@@ -274,7 +274,7 @@ html, body {
 
 #backButton {
   position: fixed;
-  top: 20px;
+  top: max(20px, env(safe-area-inset-top));
   left: 20px;
   width: 48px;
   height: 48px;
@@ -304,7 +304,7 @@ html, body {
 
 #infoToggle {
   position: fixed;
-  top: 20px;
+  top: max(20px, env(safe-area-inset-top));
   right: calc(380px + 20px);
   width: 48px;
   height: 48px;
@@ -355,7 +355,7 @@ html, body {
 
 #detailHint {
   position: fixed;
-  bottom: 20px;
+  bottom: max(20px, env(safe-area-inset-bottom));
   left: 50%;
   transform: translateX(-50%);
   font-size: 0.8em;
@@ -398,11 +398,44 @@ html, body {
     font-size: 1.6em;
     letter-spacing: 0.2em;
   }
+  #viewControls {
+    top: max(10px, env(safe-area-inset-top));
+    gap: 6px;
+    flex-wrap: wrap;
+    justify-content: center;
+    max-width: calc(100vw - 12px);
+  }
+  #viewControls button {
+    padding: 9px 12px;
+    gap: 6px;
+    letter-spacing: 0.04em;
+  }
+  #viewControls .compare-label,
+  #viewControls .to-scale-label,
+  #viewControls .orbit-label {
+    display: none;
+  }
+}
+
+@media (pointer: coarse), (max-width: 768px) {
+  .detail-info,
+  #backButton,
+  #infoToggle,
+  #detailHint,
+  #pauseButton,
+  #viewControls button,
+  #tooltip,
+  #compareBackButton,
+  #compareSidebar,
+  #compareHint {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
 }
 
 #pauseButton {
   position: fixed;
-  bottom: 20px;
+  bottom: max(20px, env(safe-area-inset-bottom));
   left: 20px;
   width: 48px;
   height: 48px;
@@ -454,7 +487,7 @@ html, body {
 
 #viewControls {
   position: fixed;
-  top: 20px;
+  top: max(20px, env(safe-area-inset-top));
   left: 50%;
   transform: translateX(-50%);
   display: flex;
@@ -598,7 +631,7 @@ html, body {
 
 #compareBackButton {
   position: fixed;
-  top: 20px;
+  top: max(20px, env(safe-area-inset-top));
   left: 276px;
   width: 48px;
   height: 48px;
@@ -745,7 +778,7 @@ html, body {
 
 #compareHint {
   position: fixed;
-  bottom: 20px;
+  bottom: max(20px, env(safe-area-inset-bottom));
   left: 50%;
   transform: translateX(-50%);
   font-size: 0.8em;

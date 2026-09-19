@@ -3,6 +3,7 @@ import { PLANET_DATA } from './planetData.js';
 import { MOON_INFO } from './moonData.js';
 import { DetailScene } from './detailScene.js';
 import { ComparisonScene } from './comparisonScene.js';
+import { disposeObject3D } from './resources.js';
 
 export class UIController {
   constructor(cameraManager, simulation) {
@@ -19,6 +20,8 @@ export class UIController {
     this.infoVisible = true;
     this.hoverPointer = new THREE.Vector2(-2, -2);
     this.hoverScreen = { x: -1, y: -1 };
+    this.hoverPointerType = 'mouse';
+    this.lastHoverAt = 0;
     
     this.tooltip = document.getElementById('tooltip');
     this.fadeEl = document.getElementById('detailFade');
@@ -34,6 +37,7 @@ export class UIController {
   
   setupEventListeners() {
     document.addEventListener('pointermove', (event) => {
+      this.hoverPointerType = event.pointerType || 'mouse';
       if (event.target === this.cameraManager.renderer.domElement) {
         this.hoverPointer.x = (event.clientX / window.innerWidth) * 2 - 1;
         this.hoverPointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
@@ -95,6 +99,22 @@ export class UIController {
         this.toggleInfoPanel();
       }
     });
+
+    this.applyMobileHints();
+  }
+
+  applyMobileHints() {
+    const coarse = !!window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+    if (!coarse) return;
+    const zoom = ' Pinch to zoom';
+    const detailHint = document.getElementById('detailHint');
+    if (detailHint && detailHint.firstChild) {
+      detailHint.firstChild.textContent = 'Drag to rotate ·' + zoom;
+    }
+    const compareHint = document.getElementById('compareHint');
+    if (compareHint) {
+      compareHint.textContent = 'Drag to rotate ·' + zoom;
+    }
   }
 
   toggleCompare() {
@@ -107,7 +127,7 @@ export class UIController {
     if (this.compareActive) return;
     if (this.detailActive) {
       this.detailActive = false;
-      this.detailScene = null;
+      this.disposeDetailScene();
       this.detailPlanet = null;
       this.moonFocus = null;
       this.cameraManager.leaveDetail();
@@ -248,7 +268,7 @@ export class UIController {
 
   rebuildDetailScene() {
     if (this.moonFocus) this.exitMoonFocus(this.cameraManager);
-    this.detailScene = null;
+    this.disposeDetailScene();
     this.enterDetail(DetailScene, this.cameraManager);
   }
   
@@ -323,6 +343,7 @@ export class UIController {
   enterDetail(detailSceneClass, cameraManager) {
     this.detailActive = true;
     if (!this.detailScene || this.detailScene.name !== this.detailPlanet.name) {
+      this.disposeDetailScene();
       this.detailScene = new detailSceneClass(this.detailPlanet, !!this.simulation.toScale);
     }
     
@@ -335,7 +356,7 @@ export class UIController {
   
   leaveDetail(cameraManager) {
     this.detailActive = false;
-    this.detailScene = null;
+    this.disposeDetailScene();
     this.detailPlanet = null;
     this.moonFocus = null;
     document.documentElement.style.setProperty('--accent', '#ffd600');
@@ -407,6 +428,13 @@ export class UIController {
       this.tooltip.classList.remove('visible');
       return;
     }
+    if (this.hoverPointerType !== 'mouse') {
+      this.tooltip.classList.remove('visible');
+      return;
+    }
+    const now = performance.now();
+    if (now - this.lastHoverAt < 100) return;
+    this.lastHoverAt = now;
     
     const activeScene = this.compareActive && this.compareScene
       ? this.compareScene.scene
@@ -471,6 +499,13 @@ export class UIController {
     return this.isPaused;
   }
   
+  disposeDetailScene() {
+    if (this.detailScene) {
+      disposeObject3D(this.detailScene.scene);
+      this.detailScene = null;
+    }
+  }
+
   setDetailScene(scene) {
     this.detailScene = scene;
   }
