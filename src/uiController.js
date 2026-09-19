@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { PLANET_DATA } from './planetData.js';
 import { MOON_INFO } from './moonData.js';
+import { DetailScene } from './detailScene.js';
 
 export class UIController {
   constructor(cameraManager, simulation) {
@@ -17,8 +18,13 @@ export class UIController {
     
     this.tooltip = document.getElementById('tooltip');
     this.fadeEl = document.getElementById('detailFade');
+    this.toScaleButton = document.getElementById('toScaleButton');
+    this.orbitToggle = document.getElementById('orbitToggle');
+    this.orbitVisible = true;
     
     this.setupEventListeners();
+    this.updateToScaleButton();
+    this.applyOrbitVisibility();
   }
   
   setupEventListeners() {
@@ -46,6 +52,14 @@ export class UIController {
 
     document.getElementById('infoToggle').onclick = () => this.toggleInfoPanel();
 
+    if (this.toScaleButton) {
+      this.toScaleButton.onclick = () => this.toggleToScale();
+    }
+
+    if (this.orbitToggle) {
+      this.orbitToggle.onclick = () => this.toggleOrbits();
+    }
+
     document.addEventListener('keydown', (event) => {
       if (event.key === 'Escape') {
         if (this.moonFocus) this.exitMoonFocus(this.cameraManager);
@@ -62,6 +76,53 @@ export class UIController {
     document.getElementById('detailPanel')?.classList.toggle('collapsed', !this.infoVisible);
     document.getElementById('detailHint')?.classList.toggle('collapsed', !this.infoVisible);
     document.getElementById('infoToggle')?.classList.toggle('off', !this.infoVisible);
+  }
+
+  toggleToScale() {
+    if (this.cameraManager.transition) return;
+    this.simulation.setToScale(!this.simulation.toScale);
+    this.updateToScaleButton();
+    if (this.detailActive && this.detailScene && this.detailPlanet) {
+      this.rebuildDetailScene();
+    }
+  }
+
+  updateToScaleButton() {
+    if (!this.toScaleButton) return;
+    if (this.simulation.toScale) {
+      this.toScaleButton.classList.add('active');
+    } else {
+      this.toScaleButton.classList.remove('active');
+    }
+  }
+
+  toggleOrbits() {
+    this.orbitVisible = !this.orbitVisible;
+    this.applyOrbitVisibility();
+  }
+
+  applyOrbitVisibility() {
+    const visible = this.orbitVisible;
+    for (const path of this.simulation.orbitPaths) {
+      path.visible = visible;
+    }
+    if (this.detailScene) {
+      for (const moon of this.detailScene.moons) {
+        moon.ring.visible = visible;
+      }
+    }
+    if (!this.orbitToggle) return;
+    if (visible) {
+      this.orbitToggle.classList.remove('off');
+    } else {
+      this.orbitToggle.classList.add('off');
+    }
+  }
+
+  rebuildDetailScene() {
+    if (this.moonFocus) this.exitMoonFocus(this.cameraManager);
+    this.detailScene = null;
+    this.enterDetail(DetailScene, this.cameraManager);
   }
   
   onClick(event, cameraManager) {
@@ -134,11 +195,12 @@ export class UIController {
   enterDetail(detailSceneClass, cameraManager) {
     this.detailActive = true;
     if (!this.detailScene || this.detailScene.name !== this.detailPlanet.name) {
-      this.detailScene = new detailSceneClass(this.detailPlanet);
+      this.detailScene = new detailSceneClass(this.detailPlanet, !!this.simulation.toScale);
     }
     
     cameraManager.enterDetail(this.detailScene, this.detailPlanet);
     this.populateDetailInfo(this.detailPlanet);
+    this.applyOrbitVisibility();
     document.getElementById('detailPanel').classList.add('open');
     document.getElementById('detailView').classList.remove('hidden');
   }

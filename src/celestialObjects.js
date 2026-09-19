@@ -193,7 +193,25 @@ export class AsteroidBelt extends THREE.Points {
     const material = new THREE.PointsMaterial({ color, size, sizeAttenuation: true });
     super(geometry, material);
     this.name = "AsteroidBelt";
+    this.innerRadius = innerRadius;
+    this.outerRadius = outerRadius;
     this.raycast = () => {};
+  }
+
+  setRadii(innerRadius, outerRadius) {
+    this.innerRadius = innerRadius;
+    this.outerRadius = outerRadius;
+    const attr = this.geometry.attributes && this.geometry.attributes.position;
+    if (!attr) return;
+    const positions = attr.array;
+    for (let i = 0; i < positions.length; i += 3) {
+      const angle = Math.random() * 2 * Math.PI;
+      const radius = innerRadius + Math.random() * (outerRadius - innerRadius);
+      positions[i] = Math.cos(angle) * radius;
+      positions[i + 1] = (Math.random() - 0.5) * 2;
+      positions[i + 2] = Math.sin(angle) * radius;
+    }
+    attr.needsUpdate = true;
   }
 
   update(deltaTime, speed = 0.001) {
@@ -205,6 +223,25 @@ export function cameraOrbit(camera, planet, simTime) {
   camera.position.x = (planet.orbitRadius + 15) * Math.cos(-planet.orbitSpeed * simTime * 3000);
   camera.position.z = (planet.orbitRadius + 15) * Math.sin(-planet.orbitSpeed * simTime * 3000);
   camera.position.y = planet.position.y + 3;
+}
+
+export function setOrbitPathRadius(path, orbitRadius, inclination = 0) {
+  const segments = 128;
+  const points = [];
+  const inclRad = THREE.MathUtils.degToRad(inclination);
+  for (let i = 0; i < segments; i++) {
+    const theta = (i / segments) * Math.PI * 2;
+    const x = orbitRadius * Math.cos(theta);
+    const z = orbitRadius * Math.sin(theta) * Math.cos(inclRad);
+    const y = orbitRadius * Math.sin(theta) * Math.sin(inclRad);
+    points.push(new THREE.Vector3(x, y, z));
+  }
+  const curve = new THREE.CatmullRomCurve3(points, true);
+  const tubeRadius = Math.max(0.5, orbitRadius * 0.004);
+  const geometry = new THREE.TubeGeometry(curve, segments, tubeRadius, 8, true);
+  path.geometry.dispose();
+  path.geometry = geometry;
+  path.userData.curve = curve;
 }
 
 export function createOrbitPath(orbitRadius, color = '#444466', thickness = null, inclination = 0) {

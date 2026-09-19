@@ -452,6 +452,84 @@ html, body {
   display: block;
 }
 
+#viewControls {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  z-index: 1100;
+}
+
+#viewControls button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  background: rgba(0, 0, 0, 0.78);
+  color: #fff;
+  opacity: 0.75;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 50px;
+  cursor: pointer;
+  transition: opacity 0.3s ease, background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+  backdrop-filter: blur(4px);
+  letter-spacing: 0.08em;
+}
+
+#viewControls button:hover {
+  opacity: 1;
+  background: rgba(0, 0, 0, 0.9);
+}
+
+#toScaleButton .to-scale-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.4);
+  transition: background 0.3s ease, box-shadow 0.3s ease;
+}
+
+#toScaleButton .to-scale-label {
+  font-size: 0.85em;
+}
+
+#toScaleButton.active {
+  border-color: var(--accent);
+  color: var(--accent);
+  box-shadow: 0 0 16px var(--accent);
+}
+
+#toScaleButton.active .to-scale-dot {
+  background: var(--accent);
+  box-shadow: 0 0 10px var(--accent);
+}
+
+#orbitToggle .orbit-icon {
+  width: 14px;
+  height: 8px;
+  border: 2px solid rgba(255, 255, 255, 0.45);
+  border-radius: 50%;
+  transform: rotate(-20deg);
+  transition: border-color 0.3s ease, opacity 0.3s ease;
+}
+
+#orbitToggle .orbit-label {
+  font-size: 0.85em;
+}
+
+#orbitToggle.off {
+  border-color: rgba(255, 255, 255, 0.25);
+  color: rgba(255, 255, 255, 0.45);
+  opacity: 0.6;
+}
+
+#orbitToggle.off .orbit-icon {
+  border-color: rgba(255, 255, 255, 0.35);
+}
+
 #tooltip {
   position: fixed;
   z-index: 3000;

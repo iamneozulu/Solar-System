@@ -30,6 +30,11 @@ export class CameraManager {
     this.returnTarget = null;
     
     this.raycaster = new THREE.Raycaster();
+    
+    if (this.renderer.domElement && this.renderer.domElement.addEventListener) {
+      this.onMoonWheel = (event) => this.handleMoonWheel(event);
+      this.renderer.domElement.addEventListener('wheel', this.onMoonWheel, { passive: false });
+    }
   }
   
   onWindowResize() {
@@ -96,23 +101,44 @@ export class CameraManager {
     const cam = isDetail ? this.detailCamera : this.camera;
     const controls = isDetail ? this.detailControls : this.controls;
     
+    const zoomDist = Math.max(moonMesh.size * 7, 0.3);
     this.moonFocus = {
       mesh: moonMesh,
       host,
       isDetail,
       savedPos: cam.position.clone(),
       savedTarget: controls.target.clone(),
-      dist: Math.max(moonMesh.size * 7, 4),
+      zoomDist,
+      minDist: Math.max(moonMesh.size * 3, 0.15),
+      maxDist: Math.max(moonMesh.size * 60, 15),
     };
     
     controls.enabled = false;
     
+    this.transition = {
+      phase: 'moonZoom',
+      progress: 0,
+      duration: 0.8,
+      startPos: cam.position.clone(),
+      startTarget: controls.target.clone(),
+    };
+    
     return this.moonFocus;
+  }
+  
+  handleMoonWheel(event) {
+    if (!this.moonFocus || this.transition) return;
+    const focus = this.moonFocus;
+    const factor = event.deltaY > 0 ? 1.15 : 1 / 1.15;
+    const min = focus.minDist;
+    const max = focus.maxDist;
+    focus.zoomDist = Math.min(max, Math.max(min, focus.zoomDist * factor));
+    event.preventDefault();
   }
   
   updateMoonFocus() {
     const focus = this.moonFocus;
-    if (!focus) return;
+    if (!focus || this.transition) return;
     
     const cam = focus.isDetail ? this.detailCamera : this.camera;
     const controls = focus.isDetail ? this.detailControls : this.controls;
@@ -123,7 +149,7 @@ export class CameraManager {
     if (dir.lengthSq() < 1e-6) dir.set(0, 1, 0);
     dir.normalize();
     
-    const targetPos = moonPos.clone().addScaledVector(dir, focus.dist);
+    const targetPos = moonPos.clone().addScaledVector(dir, focus.zoomDist);
     cam.position.lerp(targetPos, 0.1);
     cam.up.set(0, 1, 0);
     cam.lookAt(moonPos);
@@ -136,6 +162,10 @@ export class CameraManager {
     
     const cam = focus.isDetail ? this.detailCamera : this.camera;
     const controls = focus.isDetail ? this.detailControls : this.controls;
+    
+    if (this.transition && this.transition.phase === 'moonZoom') {
+      this.transition = null;
+    }
     
     cam.position.copy(focus.savedPos);
     controls.target.copy(focus.savedTarget);
@@ -193,6 +223,27 @@ export class CameraManager {
         fadeEl.style.opacity = '0';
         this.transition = null;
         onUncoverComplete();
+      }
+    } else if (this.transition.phase === 'moonZoom') {
+      const focus = this.moonFocus;
+      if (!focus) {
+        this.transition = null;
+        return;
+      }
+      const cam = focus.isDetail ? this.detailCamera : this.camera;
+      const controls = focus.isDetail ? this.detailControls : this.controls;
+      const moonPos = focus.mesh.getWorldPosition(new THREE.Vector3());
+      const hostPos = focus.host.getWorldPosition(new THREE.Vector3());
+      const dir = new THREE.Vector3().subVectors(moonPos, hostPos);
+      if (dir.lengthSq() < 1e-6) dir.set(0, 1, 0);
+      dir.normalize();
+      const targetPos = moonPos.clone().addScaledVector(dir, focus.zoomDist);
+      cam.up.set(0, 1, 0);
+      cam.position.lerpVectors(this.transition.startPos, targetPos, t);
+      controls.target.lerpVectors(this.transition.startTarget, moonPos, t);
+      cam.lookAt(moonPos);
+      if (this.transition.progress >= 1) {
+        this.transition = null;
       }
     }
   }

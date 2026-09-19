@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { PlanetRing, createOrbitPath, generateRingTexture, setOrbitPathThickness } from './celestialObjects.js';
 import { createStarfield } from './starfield.js';
 import { PLANET_DATA } from './planetData.js';
+import { MOON_RATIOS } from './scaleData.js';
 import { textureLoader } from './resources.js';
 
 export const MOON_DATA = {
@@ -44,8 +45,9 @@ export const MOON_DATA = {
 };
 
 export class DetailScene {
-  constructor(planet) {
+  constructor(planet, toScale = false) {
     this.name = planet.name;
+    this.toScale = toScale;
     this.scene = new THREE.Scene();
     createStarfield(this.scene);
 
@@ -95,8 +97,13 @@ export class DetailScene {
     this.group.add(moonOrbitGroup);
     this.moonOrbitGroup = moonOrbitGroup;
     for (const spec of config) {
-      const size = planet.size * spec.size;
-      const orb = planet.size * spec.orb;
+      const ratio = this.toScale ? MOON_RATIOS[spec.name] : null;
+      let size = planet.size * spec.size;
+      let orb = planet.size * spec.orb;
+      if (ratio) {
+        orb = planet.size * ratio.orb;
+        size = Math.max(planet.size * ratio.size, 0.02);
+      }
       const material = spec.texture
         ? new THREE.MeshBasicMaterial({ map: textureLoader.load('./static/images/' + spec.texture) })
         : new THREE.MeshBasicMaterial({ map: generateMoonTexture() });
