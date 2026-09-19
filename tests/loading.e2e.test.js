@@ -54,17 +54,10 @@ describe('E2E: Solar System loads and is operable', () => {
     await progressBar.waitFor({ state: 'visible', timeout: 5000 });
     expect(await progressBar.isVisible()).toBe(true);
 
-    const launchBtn = page.locator('#launchBtn');
-    await launchBtn.waitFor({ state: 'visible', timeout: TIMEOUT });
-    expect(await launchBtn.isVisible()).toBe(true);
-
     const width = await progressBar.evaluate(el => el.style.width);
     expect(width).toBe('100%');
 
-    expect(await launchBtn.isEnabled()).toBe(true);
-    await launchBtn.click();
-
-    await loadingScreen.waitFor({ state: 'hidden', timeout: 5000 });
+    await loadingScreen.waitFor({ state: 'hidden', timeout: TIMEOUT });
     expect(await loadingScreen.isVisible()).toBe(false);
 
     await page.waitForSelector('canvas', { timeout: 5000 });
@@ -76,7 +69,7 @@ describe('E2E: Solar System loads and is operable', () => {
     expect(await pauseBtn.isVisible()).toBe(true);
 
     await pauseBtn.click();
-    const pauseText = await pauseBtn.textContent();
-    expect(pauseText.trim()).toBe('▶');
+    const paused = await pauseBtn.evaluate(el => el.classList.contains('paused'));
+    expect(paused).toBe(true);
   }, TIMEOUT + 10000);
 });

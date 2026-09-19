@@ -1,2 +1,0 @@
-- [ ] make moon orbit ring thickness scale with how far the camera is
-- [ ] make information toggle on or off screen for cleaner view

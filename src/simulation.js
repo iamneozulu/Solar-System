@@ -13,10 +13,13 @@ const Mars = new CELESTIAL.Planet("Mars", 1.5, 207940000, (1440000000 / 9.4), 0.
 const Jupiter = new CELESTIAL.Planet("Jupiter", 7, 749370000 / 2, (4770000000 / 60), 0.05, 3.13, PLANET_DATA.Jupiter.color, "./static/images/jupiter.jpg");
 const Saturn = new CELESTIAL.Planet("Saturn", 6.5, 1450400000 / 2, (9120000000 / 147), 0.05, 26.73, PLANET_DATA.Saturn.color, "./static/images/saturn.jpg");
 const SaturnRingTexture = CELESTIAL.generateRingTexture();
-const SaturnRing = new CELESTIAL.PlanetRing(Saturn, 1, 5, SaturnRingTexture);
+const SaturnRing = new CELESTIAL.PlanetRing(Saturn, 1.2, 2.3, SaturnRingTexture);
 const Uranus = new CELESTIAL.Planet("Uranus", 5, 2930100000 / 3, (18400000000 / 420), 0.05, 97.77, PLANET_DATA.Uranus.color, "./static/images/uranus.jpg");
-const UranusRing = new CELESTIAL.PlanetRing(Uranus, 3, 4);
+const UranusRingTexture = CELESTIAL.generateRingTexture({ r: 138, g: 160, b: 178, alpha: 0.42 });
+const UranusRing = new CELESTIAL.PlanetRing(Uranus, 1.6, 1.8, UranusRingTexture);
 const Neptune = new CELESTIAL.Planet("Neptune", 5, 4472100000 / 3.5, (28100000000 / 825), 0.05, 28, PLANET_DATA.Neptune.color, "./static/images/neptune.jpg");
+const NeptuneRingTexture = CELESTIAL.generateRingTexture({ r: 90, g: 105, b: 140, alpha: 0.4 });
+const NeptuneRing = new CELESTIAL.PlanetRing(Neptune, 1.68, 2.62, NeptuneRingTexture);
 
 const planets = [Mercury, Venus, Earth, Mars, Jupiter, Saturn, Uranus, Neptune];
 
@@ -39,6 +42,7 @@ export const simulation = {
   Lunar,
   SaturnRing,
   UranusRing,
+  NeptuneRing,
   asteroidBelt,
   kuiperBelt,
   orbitPaths,
@@ -51,6 +55,7 @@ export const simulation = {
     this.Lunar.update(deltaTime, this.simulationTime);
     this.SaturnRing.update();
     this.UranusRing.update();
+    this.NeptuneRing.update();
     this.asteroidBelt.update(deltaTime);
     this.kuiperBelt.update(deltaTime);
   },
@@ -62,6 +67,7 @@ export const simulation = {
       this.Lunar,
       this.SaturnRing,
       this.UranusRing,
+      this.NeptuneRing,
       this.asteroidBelt,
       this.kuiperBelt,
       ...this.orbitPaths,

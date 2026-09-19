@@ -16,10 +16,9 @@ loadingManager.onProgress = (url, itemsLoaded, itemsTotal) => {
   document.getElementById('progressText').textContent = pct + '%';
 };
 loadingManager.onLoad = () => {
-  const btn = document.getElementById('launchBtn');
-  btn.style.display = 'block';
-  document.getElementById('progressText').textContent = 'Ready!';
-  setTimeout(() => btn.classList.add('visible'), 50);
+  const screen = document.getElementById('loadingScreen');
+  screen.classList.add('fade-out');
+  setTimeout(() => { screen.style.display = 'none'; }, 600);
 };
 
 function init() {
@@ -74,10 +73,10 @@ function animate(cameraManager, uiController) {
   if (!uiController.getPaused()) {
     simulation.update(deltaTime);
     if (uiController.detailActive && uiController.detailScene) {
-      uiController.detailScene.update(deltaTime);
+      uiController.detailScene.update(deltaTime, cameraManager.detailCamera, !!uiController.moonFocus);
     }
   } else if (uiController.detailActive && uiController.detailScene) {
-    uiController.detailScene.update(0);
+    uiController.detailScene.update(0, cameraManager.detailCamera, !!uiController.moonFocus);
   }
   
   cameraManager.updateTransition(

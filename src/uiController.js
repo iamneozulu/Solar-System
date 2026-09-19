@@ -11,6 +11,7 @@ export class UIController {
     this.detailActive = false;
     this.moonFocus = null;
     this.isPaused = false;
+    this.infoVisible = true;
     this.hoverPointer = new THREE.Vector2(-2, -2);
     this.hoverScreen = { x: -1, y: -1 };
     
@@ -35,30 +36,32 @@ export class UIController {
     
     document.getElementById('pauseButton').onclick = () => {
       this.isPaused = !this.isPaused;
-      document.getElementById('pauseButton').textContent = this.isPaused ? '▶' : '⏸';
-    };
-    
-    document.getElementById('launchBtn').onclick = (event) => {
-      event.stopPropagation();
-      document.getElementById('loadingScreen').style.display = 'none';
+      document.getElementById('pauseButton').classList.toggle('paused', this.isPaused);
     };
     
     document.getElementById('backButton').onclick = () => {
       if (this.moonFocus) this.exitMoonFocus(this.cameraManager);
       else this.exitDetail(this.cameraManager);
     };
-    
-    document.getElementById('detailClose').onclick = () => {
-      if (this.moonFocus) this.exitMoonFocus(this.cameraManager);
-      else this.exitDetail(this.cameraManager);
-    };
-    
+
+    document.getElementById('infoToggle').onclick = () => this.toggleInfoPanel();
+
     document.addEventListener('keydown', (event) => {
       if (event.key === 'Escape') {
         if (this.moonFocus) this.exitMoonFocus(this.cameraManager);
         else this.exitDetail(this.cameraManager);
       }
+      if (event.key === 'i' || event.key === 'I') {
+        this.toggleInfoPanel();
+      }
     });
+  }
+
+  toggleInfoPanel() {
+    this.infoVisible = !this.infoVisible;
+    document.getElementById('detailPanel')?.classList.toggle('collapsed', !this.infoVisible);
+    document.getElementById('detailHint')?.classList.toggle('collapsed', !this.infoVisible);
+    document.getElementById('infoToggle')?.classList.toggle('off', !this.infoVisible);
   }
   
   onClick(event, cameraManager) {
@@ -210,7 +213,7 @@ export class UIController {
   
   updateHover(cameraManager) {
     if (!cameraManager || !cameraManager.scene) return;
-    if (cameraManager.transition || this.hoverPointer.x < -1.9) {
+    if (cameraManager.transition || !this.infoVisible || this.hoverPointer.x < -1.9) {
       this.tooltip.classList.remove('visible');
       return;
     }

@@ -81,8 +81,10 @@ export class Moon extends THREE.Mesh {
 }
 
 export class PlanetRing extends THREE.Mesh {
-  constructor(planet, innerRadius, outerRadius, texture) {
-    const geometry = new THREE.RingGeometry(planet.size + innerRadius, planet.size + outerRadius, 64);
+  constructor(planet, innerMultiplier = 1.2, outerMultiplier = 2.3, texture) {
+    const innerRadius = planet.size * innerMultiplier;
+    const outerRadius = planet.size * outerMultiplier;
+    const geometry = new THREE.RingGeometry(innerRadius, outerRadius, 64);
     mapRingUVs(geometry);
     const materialOptions = { side: THREE.DoubleSide, transparent: true };
     if (texture) {
@@ -103,9 +105,10 @@ export class PlanetRing extends THREE.Mesh {
   }
 }
 
-export function generateRingTexture() {
+export function generateRingTexture(options = {}) {
   const W = 16;
   const H = 512;
+  const { r = 210, g = 185, b = 150, alpha = 1 } = options;
   const canvas = document.createElement('canvas');
   canvas.width = W;
   canvas.height = H;
@@ -118,10 +121,10 @@ export function generateRingTexture() {
     const t = y / H;
     const brightness = ringBrightness(t);
 
-    const ir = Math.min(255, Math.round(210 + brightness * 50));
-    const ig = Math.min(255, Math.round(185 + brightness * 55));
-    const ib = Math.min(255, Math.round(150 + brightness * 70));
-    const alpha = Math.min(255, Math.round(brightness * 255));
+    const ir = Math.min(255, Math.round(r + brightness * 50));
+    const ig = Math.min(255, Math.round(g + brightness * 55));
+    const ib = Math.min(255, Math.round(b + brightness * 70));
+    const outAlpha = Math.min(255, Math.round(brightness * 255 * alpha));
 
     for (let x = 0; x < W; x++) {
       const jitter = 0.88 + Math.random() * 0.24;
@@ -129,7 +132,7 @@ export function generateRingTexture() {
       data[idx] = Math.min(255, Math.round(ir * jitter));
       data[idx + 1] = Math.min(255, Math.round(ig * jitter));
       data[idx + 2] = Math.min(255, Math.round(ib * jitter));
-      data[idx + 3] = alpha;
+      data[idx + 3] = outAlpha;
     }
   }
 
@@ -221,5 +224,16 @@ export function createOrbitPath(orbitRadius, color = '#444466', thickness = null
   const material = new THREE.MeshBasicMaterial({ color: new THREE.Color(color), opacity: 0.65, transparent: true });
   const orbitPath = new THREE.Mesh(geometry, material);
   orbitPath.userData.isOrbitPath = true;
+  orbitPath.userData.curve = curve;
+  orbitPath.userData.tubularSegments = segments;
   return orbitPath;
+}
+
+export function setOrbitPathThickness(path, thickness) {
+  const curve = path.userData.curve;
+  if (!curve) return;
+  const segments = path.userData.tubularSegments ?? 128;
+  const geometry = new THREE.TubeGeometry(curve, segments, thickness, 8, true);
+  path.geometry.dispose();
+  path.geometry = geometry;
 }

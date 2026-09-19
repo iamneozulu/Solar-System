@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { PlanetRing, createOrbitPath, generateRingTexture } from './celestialObjects.js';
+import { PlanetRing, createOrbitPath, generateRingTexture, setOrbitPathThickness } from './celestialObjects.js';
 import { createStarfield } from './starfield.js';
 import { PLANET_DATA } from './planetData.js';
 import { textureLoader } from './resources.js';
@@ -115,6 +115,7 @@ export class DetailScene {
 
       moons.push({
         mesh,
+        ring: path,
         orb,
         phase: Math.random() * Math.PI * 2,
         speed: spec.speed * 5e-8,
@@ -125,12 +126,17 @@ export class DetailScene {
 
   buildRing() {
     if (this.name === 'Saturn') {
-      const ring = new PlanetRing(this.planetObj, 1, 5, generateRingTexture());
+      const ring = new PlanetRing(this.planetObj, 1.2, 2.3, generateRingTexture());
       this.group.add(ring);
       return ring;
     }
     if (this.name === 'Uranus') {
-      const ring = new PlanetRing(this.planetObj, 3, 4);
+      const ring = new PlanetRing(this.planetObj, 1.6, 1.8, generateRingTexture({ r: 138, g: 160, b: 178, alpha: 0.42 }));
+      this.group.add(ring);
+      return ring;
+    }
+    if (this.name === 'Neptune') {
+      const ring = new PlanetRing(this.planetObj, 1.68, 2.62, generateRingTexture({ r: 90, g: 105, b: 140, alpha: 0.4 }));
       this.group.add(ring);
       return ring;
     }
@@ -152,7 +158,7 @@ export class DetailScene {
     return mesh;
   }
 
-  update(deltaTime) {
+  update(deltaTime, camera = null, inMoonFocus = false) {
     this.planetObj.rotation.y += this.rotationSpeed * deltaTime;
     for (const moon of this.moons) {
       moon.phase += moon.speed * deltaTime;
@@ -161,8 +167,23 @@ export class DetailScene {
       moon.mesh.position.z = Math.sin(moon.phase) * moon.orb;
       moon.mesh.rotation.y += 0.25 * deltaTime;
     }
+    this.updateMoonRingThickness(camera, inMoonFocus);
     if (this.sun) this.sun.rotation.y += 0.05 * deltaTime;
     this.ring?.update();
+  }
+
+  updateMoonRingThickness(camera, inMoonFocus) {
+    if (!camera) return;
+    const factor = inMoonFocus ? 0.12 : 1;
+    const dist = camera.position.length();
+    for (const moon of this.moons) {
+      const thickness = THREE.MathUtils.clamp(dist * 0.006 * factor, 0.05 * factor, moon.orb * 0.06);
+      const last = moon.ring.userData.lastThickness;
+      if (last == null || Math.abs(thickness - last) / thickness > 0.12) {
+        setOrbitPathThickness(moon.ring, thickness);
+        moon.ring.userData.lastThickness = thickness;
+      }
+    }
   }
 }
 

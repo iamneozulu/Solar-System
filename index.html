@@ -21,18 +21,25 @@
       <div id="progressBar"></div>
     </div>
     <span id="progressText">Loading...</span>
-    <button id="launchBtn">Explore</button>
   </div>
 
-  <button id="pauseButton">⏸</button>
+  <button id="pauseButton" title="Pause">
+    <span class="bar"></span>
+    <span class="bar"></span>
+    <span class="play"></span>
+  </button>
 
   <div id="detailView" class="hidden">
-    <button id="backButton" title="Back to solar system">&larr;</button>
+    <button id="backButton" title="Back to solar system">
+      <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+    </button>
+    <button id="infoToggle" title="Toggle info panel (I)">
+      <span></span><span></span><span></span>
+    </button>
     <div id="detailPanel" class="detail-info">
       <div class="detail-header">
         <div id="detailColorDot"></div>
         <h2 id="detailTitle">Object Information</h2>
-        <span id="detailClose" title="Close">&times;</span>
       </div>
       <p id="detailDescription">Details about the selected object will appear here.</p>
       <div id="detailDetails"></div>
