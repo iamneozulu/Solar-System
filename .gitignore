@@ -1,0 +1,23 @@
+# dependencies
+node_modules/
+
+# build output
+dist/
+
+# vite / bundler cache
+.vite/
+*.tsbuildinfo
+
+# test artifacts
+coverage/
+*.log
+
+# scratch / local notes
+sx.diff
+
+# local tooling config (not part of the app)
+tsconfig.json
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
