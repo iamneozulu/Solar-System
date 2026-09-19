@@ -1,2 +1,0 @@
-- [x] create new view for comparing the sizes of the moons and planets next to eachother. the selected planets/moons/sun should not overlap and the background should be white
-- [x] planets should be selectable on a side bar in this view

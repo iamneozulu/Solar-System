@@ -29,6 +29,8 @@ export class UIController {
     this.orbitToggle = document.getElementById('orbitToggle');
     this.orbitVisible = true;
     this.compareButton = document.getElementById('compareButton');
+    this.compareToggle = document.getElementById('compareToggle');
+    this.compareSidebarVisible = true;
     
     this.setupEventListeners();
     this.updateToScaleButton();
@@ -67,6 +69,10 @@ export class UIController {
 
     if (this.compareButton) {
       this.compareButton.onclick = () => this.toggleCompare();
+    }
+
+    if (this.compareToggle) {
+      this.compareToggle.onclick = () => this.toggleCompareSidebar();
     }
 
     const compareAllButton = document.getElementById('compareAllButton');
@@ -136,6 +142,8 @@ export class UIController {
     }
 
     this.compareActive = true;
+    this.compareSidebarVisible = true;
+    document.getElementById('compareView').classList.remove('sidebar-hidden');
     if (!this.compareScene) {
       this.compareScene = new ComparisonScene();
       this.buildCompareSidebar();
@@ -216,6 +224,11 @@ export class UIController {
     if (!this.compareScene) return;
     this.compareScene.setSelected(this.compareSelected);
     this.cameraManager.frameCompare(this.compareScene);
+  }
+
+  toggleCompareSidebar() {
+    this.compareSidebarVisible = !this.compareSidebarVisible;
+    document.getElementById('compareView')?.classList.toggle('sidebar-hidden', !this.compareSidebarVisible);
   }
 
   toggleInfoPanel() {
